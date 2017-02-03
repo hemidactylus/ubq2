@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {{ super() }}
+ <div class="container">
+  <h2>
+    <i class="fa fa-cog fa-lg" aria-hidden="true"></i>
+    User settings
+  </h2>
+  <hr>
+  <form action="" method="post" name="login">
+    <div class="form-group">
+     {{ form.hidden_tag() }}
+      <div class="row row-grid"">
+        <div class="col-sm-2">
+          <label for="email">
+            Email
+          </label>
+        </div>
+        <div class="col-sm-8">
+          {{ form.email(size=30, class_="form-control") }}
+          {% for error in form.email.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="row row-grid"">
+        <div class="col-sm-2">
+          <label for="subscribed">
+            Receive alerts
+          </label>
+        </div>
+        <div class="col-sm-8">
+          {{ form.subscribed() }}
+          {% for error in form.subscribed.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          {{ form.submit(class_='btn btn-success') }}
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% block footer %}
+    {{ super() }}
+{% endblock %}
+
+{% endblock %}

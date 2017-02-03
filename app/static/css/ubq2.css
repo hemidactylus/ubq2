@@ -1,0 +1,8 @@
+.row-grid + .row-grid {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+body {
+    padding-bottom: 30px;
+}

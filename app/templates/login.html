@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {{ super() }}
+ <div class="container">
+  <h2>
+    <i class="fa fa-sign-in fa-lg" aria-hidden="true"></i>
+    Log in
+  </h2>
+  <hr>
+  <form action="" method="post" name="login">
+    <div class="form-group">
+     {{ form.hidden_tag() }}
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          <label for="username">
+            Username
+          </label>
+        </div>
+        <div class="col-sm-8">
+          {{ form.username(size=30, class_="form-control") }}
+          {% for error in form.username.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="row row-grid"">
+        <div class="col-sm-2">
+          <label for="password">
+            Password
+          </label>
+        </div>
+        <div class="col-sm-8">
+          {{ form.password(size=30, class_="form-control") }}
+          {% for error in form.password.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          {{ form.login(class_='btn btn-success') }}
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% block footer %}
+    {{ super() }}
+{% endblock %}
+
+{% endblock %}

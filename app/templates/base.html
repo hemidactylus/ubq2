@@ -1,0 +1,134 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/fixes.html" as fixes %}
+{% import "bootstrap/utils.html" as util %}
+
+{% block head %}
+
+    {{super()}}
+    {{fixes.ie8()}}
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="stylesheet" href="/static/font-awesome/css/font-awesome.min.css" type="text/css">
+    <link href="/static/css/ubq2.css" rel="stylesheet" type="text/css" />
+    <link href="/static/css/ct/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link rel="icon" href="/static/images/logo1.svg">
+
+{% endblock %}
+
+{% block title %}
+    {% if title %}
+        {{ title }} - UBIQueue
+    {% else %}
+        UBIQueue
+    {% endif %}
+{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li class="active">
+                <a href="{{ url_for('ep_index') }}">
+                  <img class=".img-responsive" src="/static/images/logo1.svg" alt="Logo" height=25px>
+                  UBIQueue
+                </a>
+              </li>
+              {% if g.user.is_authenticated %}
+                <li>
+                  <a href="some_url">
+                    <i class="fa fa-sticky-note-o fa-lg" aria-hidden="true"></i>
+                    General
+                  </a>
+                </li>
+                <li>
+                  <a href="some_url">
+                    <i class="fa fa-server fa-lg" aria-hidden="true"></i>
+                    Counters
+                  </a>
+                </li>
+                <li>
+                  <a href="some_url">
+                    <i class="fa fa-users fa-lg" aria-hidden="true"></i>
+                    Access stats
+                  </a>
+                </li>
+                <li>
+                  <a href="some_url">
+                    <i class="fa fa-line-chart fa-lg" aria-hidden="true"></i>
+                    Number stats
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              {% if g.user.is_authenticated %}
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" 
+                        aria-expanded="false">
+                    <i class="fa fa-user fa-lg" aria-hidden="true"></i>
+                    {{ g.user.username }}
+                    <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li><a href="{{ url_for('ep_usersettings') }}">
+                      <i class="fa fa-cog fa-lg" aria-hidden="true"></i>
+                      Settings
+                    </a></li>
+                    <li><a href="{{ url_for('ep_changepassword') }}">
+                      <i class="fa fa-key fa-lg" aria-hidden="true"></i>
+                      Change password
+                    </a></li>
+                    <li role="separator" class="divider"></li>
+                    <li><a href="{{ url_for('ep_logout') }}">
+                      <i class="fa fa-logout fa-lg" aria-hidden="true"></i>
+                      Log Out
+                    </a></li>
+                  </ul>
+                </li>
+              {% else %}
+                <li>
+                  <a href="{{ url_for('ep_login') }}">
+                    <i class="fa fa-sign-in fa-lg" aria-hidden="true"></i>
+                    Log in
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+</div>
+{% endblock %}
+
+{% block content %}
+  {{util.flashed_messages(dismissible=True)}}
+{% endblock %}
+
+{% block footer %}
+<nav class="navbar navbar-default navbar-fixed-bottom">
+  <div class="container" align="center">
+      <small>
+        <img src="/static/images/logo1.svg" alt="Logo" height=20px>
+        UBIQueue:
+        <a href="SomeAboutUrl">about</a>
+        -
+        <a href="SomeGithubUrl" target="_blank">github</a>
+      </small>
+  </div>
+</nav>
+
+{% endblock %}
