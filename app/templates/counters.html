@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="container">
+      <h2>Counters</h2>
+      <hr>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th class="col col-sm-1">
+              <!-- the display itself -->
+            </th>
+            <th class="col col-sm-1">
+              ID
+            </th>
+            <th class="col col-sm-2">
+              Full Name
+            </th>
+            <th class="col col-sm-1">
+              Number
+            </th>
+            <th class="col col-sm-1">
+              Status
+            </th>
+            <th class="col col-sm-1">
+              Mode
+            </th>
+            <th class="col col-sm-2">
+              Last Alive
+            </th>
+            <th class="col col-sm-2">
+              Last Change
+            </th>
+            <th class="col col-sm-1">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for counter in counters %}
+          <tr>
+              <td>TODO</td>
+              <td>{{ counter.id }}</td>
+              <td>{{ counter.fullname }}</td>
+              <td>{{ counter.value }}</td>
+              <td>{{ counter.status }}</td>
+              <td>{{ counter.mode }}</td>
+              <td>{{ counter.lastupdate }}</td>
+              <td>{{ counter.lastchange }}</td>
+              <td>DEL</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}
+

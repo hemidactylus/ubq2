@@ -10,7 +10,7 @@ from sensible_config import SECRET_KEY
 # database settings
 DB_DIRECTORY=os.path.join(basedir,'app/database')
 DB_NAME='ubq2.db'
-DB_DEBUG=True
+DB_DEBUG=False
 
 # DERIVED VARIABLES - do not edit below this line (theoretically)
 dbFullName=os.path.join(DB_DIRECTORY,DB_NAME)

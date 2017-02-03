@@ -48,17 +48,17 @@
                   UBIQueue
                 </a>
               </li>
+                <li>
+                  <a href="{{ url_for('ep_counters') }}">
+                    <i class="fa fa-server fa-lg" aria-hidden="true"></i>
+                    Counters
+                  </a>
+                </li>
               {% if g.user.is_authenticated %}
                 <li>
                   <a href="some_url">
                     <i class="fa fa-sticky-note-o fa-lg" aria-hidden="true"></i>
                     General
-                  </a>
-                </li>
-                <li>
-                  <a href="some_url">
-                    <i class="fa fa-server fa-lg" aria-hidden="true"></i>
-                    Counters
                   </a>
                 </li>
                 <li>

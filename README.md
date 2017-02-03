@@ -2,6 +2,12 @@
 UBQ 2 SERVER-SIDE TECH SPECS
 ----------------------------
 
+# Doing and to-do
+
+- counters view: separate the admin view and the visitor view.
+
+# General notes
+
 * Functionalities:
     - must serve html contents, one per counter, with the boxed number and the timer and the info
         (possibly with cookie-based proper access stats)

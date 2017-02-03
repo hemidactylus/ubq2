@@ -26,6 +26,7 @@ from app.database.dbtools import (
     dbGetUser,
     dbOpenDatabase,
     dbUpdateUser,
+    dbGetCounters,
 )
 from config import dbFullName
 from app.database.models import (
@@ -64,6 +65,21 @@ def ep_update():
     newNumber=request.args.get('N')
     counterKey=request.args.get('K')
     return('We`ll be there shortly.')
+
+@app.route('/counters')
+def ep_counters():
+    '''
+        No login required: if logged in, edit facilities are there.
+        Else, they aren't and this is just the overall view.
+    '''
+    user=g.user
+    db=dbOpenDatabase(dbFullName)
+    counters=sorted(dbGetCounters(db))
+    return render_template(
+        'counters.html',
+        user=user,
+        counters=counters
+    )
 
 @app.route('/changepassword', methods=['GET', 'POST'])
 @login_required

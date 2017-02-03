@@ -9,6 +9,49 @@ class dictableObject():
     def asDict(self):
         return {k: getattr(self,k) for k in self.namedFields}
 
+    def consumeKWargs(self, **kwargs):
+        '''
+            eats up and sets all kwargs appearing in the namedFields,
+            returning the remaining ones for specialised handling
+        '''
+        _kwargs={k:v for k,v in kwargs.items()}
+        delFields=[]
+        for k,v in _kwargs.items():
+            if k in self.namedFields:
+                setattr(self,k,v)
+                delFields.append(k)
+        for df in delFields:
+            del _kwargs[df]
+        return _kwargs
+
+class Counter(dictableObject):
+
+    namedFields=[
+        'id',
+        'fullname',
+        'lastupdate',
+        'lastchange',
+        'value',
+        'status',
+        'key',
+        'mode',
+        'fcolor',
+        'bcolor',
+        'ncolor',
+    ]
+
+    def __init__(self,**kwargs):
+        _kwargs=self.consumeKWargs(**kwargs)
+        # no additional conversions here
+        if _kwargs:
+            raise ValueError('Unknown argument(s): %s' % ', '.join(_kwargs.keys()))
+
+    def __str__(self):
+        return '<Counter "%s" (%s -> %i )>' % (self.id, self.fullname, self.value)
+
+    def __lt__(self,other):
+        return self.fullname.lower() < other.fullname.lower()
+
 class User(dictableObject):
 
     namedFields=['username','fullname','passwordhash', 'email', 'subscribed']
@@ -17,20 +60,10 @@ class User(dictableObject):
         '''
             username, id, passwordhash
         '''
-        _kwargs={k:v for k,v in kwargs.items()}
-        if 'passwordhash' in _kwargs:
-            self.passwordhash=_kwargs['passwordhash']
-            del kwargs['passwordhash']
-        elif 'password' in _kwargs:
+        _kwargs=self.consumeKWargs(**kwargs)
+        if 'password' in _kwargs:
             self.passwordhash=self._hashString(_kwargs['password'])
             del _kwargs['password']
-        delFields=[]
-        for k,v in _kwargs.items():
-            if k in self.namedFields:
-                setattr(self,k,v)
-                delFields.append(k)
-        for df in delFields:
-            del _kwargs[df]
         if _kwargs:
             raise ValueError('Unknown argument(s): %s' % ', '.join(_kwargs.keys()))
 

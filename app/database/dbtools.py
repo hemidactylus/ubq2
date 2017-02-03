@@ -3,7 +3,7 @@
 import sqlite3 as lite
 from operator import itemgetter
 
-from app.database.models import User
+from app.database.models import User, Counter
 from app.database.dbschema import dbTablesDesc
 from config import DB_DEBUG
 
@@ -67,6 +67,20 @@ def dbCreateTable(db,tableName,tableDesc):
     cur=db.cursor()
     cur.execute(createCommand)
 
+def dbRetrieveAllRecords(db, tableName):
+    '''
+        returns an iterator on dicts,
+        one for each item in the table,
+        in no particular order AT THE MOMENT
+    '''
+    cur=db.cursor()
+    selectStatement='SELECT * FROM %s' % (tableName)
+    if DB_DEBUG:
+        print('[dbRetrieveAllRecords] %s' % selectStatement)
+    cur.execute(selectStatement)
+    for recTuple in cur.fetchall():
+        yield dict(zip(listColumns(tableName),recTuple))
+
 def dbRetrieveRecordByKey(db, tableName, key):
     '''
         key is for instance {'id': '123'}
@@ -77,6 +91,9 @@ def dbRetrieveRecordByKey(db, tableName, key):
     kNames,kValues=zip(*list(key.items()))
     whereClause=' AND '.join('%s=?' % kn for kn in kNames)
     selectStatement='SELECT * FROM %s WHERE %s' % (tableName,whereClause)
+    if DB_DEBUG:
+        print('[dbRetrieveRecordByKey] %s' % selectStatement)
+        print('[dbRetrieveRecordByKey] %s' % ','.join('%s' % iv for iv in kValues))
     cur.execute(selectStatement, kValues)
     docTuple=cur.fetchone()
     docDict=dict(zip(listColumns(tableName),docTuple))
@@ -90,9 +107,18 @@ def dbGetUser(db, username):
 def dbAddUser(db, nUser):
     dbAddRecordToTable(db,'users',nUser.asDict())
 
+def dbAddCounter(db, nCounter):
+    dbAddRecordToTable(db,'counters',nCounter.asDict())
+
 def dbUpdateUser(db,nUser):
     dbUpdateRecordOnTable(
         db,
         'users',
         nUser.asDict(),
     )
+
+def dbGetCounters(db):
+    return [
+        Counter(**counterDict)
+        for counterDict in dbRetrieveAllRecords(db,'counters')
+    ]
