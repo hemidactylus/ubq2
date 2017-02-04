@@ -29,10 +29,7 @@ class Counter(dictableObject):
     namedFields=[
         'id',
         'fullname',
-        'lastupdate',
-        'lastchange',
-        'value',
-        'status',
+        'notes',
         'key',
         'mode',
         'fcolor',
@@ -47,7 +44,29 @@ class Counter(dictableObject):
             raise ValueError('Unknown argument(s): %s' % ', '.join(_kwargs.keys()))
 
     def __str__(self):
-        return '<Counter "%s" (%s -> %i )>' % (self.id, self.fullname, self.value)
+        return '<Counter "%s" (%s)>' % (self.id, self.fullname)
+
+    def __lt__(self,other):
+        return self.fullname.lower() < other.fullname.lower()
+
+class CounterStatus(dictableObject):
+
+    namedFields=[
+        'id',
+        'lastupdate',
+        'lastchange',
+        'value',
+        'status',
+    ]
+
+    def __init__(self,**kwargs):
+        _kwargs=self.consumeKWargs(**kwargs)
+        # no additional conversions here
+        if _kwargs:
+            raise ValueError('Unknown argument(s): %s' % ', '.join(_kwargs.keys()))
+
+    def __str__(self):
+        return '<CounterStatus "%s" (%i)>' % (self.id, self.value)
 
     def __lt__(self,other):
         return self.fullname.lower() < other.fullname.lower()

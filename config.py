@@ -14,3 +14,7 @@ DB_DEBUG=False
 
 # DERIVED VARIABLES - do not edit below this line (theoretically)
 dbFullName=os.path.join(DB_DIRECTORY,DB_NAME)
+
+# counter appearance settings
+NOT_FOUND_COUNTER_MESSAGE='(no info)'
+NOT_FOUND_COUNTER_VALUE='--'

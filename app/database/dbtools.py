@@ -3,7 +3,11 @@
 import sqlite3 as lite
 from operator import itemgetter
 
-from app.database.models import User, Counter
+from app.database.models import(
+    User,
+    Counter,
+    CounterStatus,
+)
 from app.database.dbschema import dbTablesDesc
 from config import DB_DEBUG
 
@@ -96,8 +100,11 @@ def dbRetrieveRecordByKey(db, tableName, key):
         print('[dbRetrieveRecordByKey] %s' % ','.join('%s' % iv for iv in kValues))
     cur.execute(selectStatement, kValues)
     docTuple=cur.fetchone()
-    docDict=dict(zip(listColumns(tableName),docTuple))
-    return docDict
+    if docTuple is not None:
+        docDict=dict(zip(listColumns(tableName),docTuple))
+        return docDict
+    else:
+        return None
 
 # TABLE-TIED FUNCTION SHORTCUTS
 def dbGetUser(db, username):
@@ -117,8 +124,25 @@ def dbUpdateUser(db,nUser):
         nUser.asDict(),
     )
 
-def dbGetCounters(db):
-    return [
-        Counter(**counterDict)
-        for counterDict in dbRetrieveAllRecords(db,'counters')
-    ]
+def dbGetCounters(db, keepAsDict=False):
+    if keepAsDict:
+        return list(dbRetrieveAllRecords(db,'counters'))
+    else:
+        return [
+            Counter(**counterDict)
+            for counterDict in dbRetrieveAllRecords(db,'counters')
+        ]
+
+def dbGetCounter(db, counterid, keepAsDict=False):
+    counterDict = dbRetrieveRecordByKey(db, 'counters', {'id': counterid})
+    if keepAsDict:
+        return counterDict
+    else:
+        return Counter(**counterDict) if counterDict else None
+
+def dbGetCounterStatus(db, counterid, keepAsDict=False):
+    counterDict = dbRetrieveRecordByKey(db, 'counterstatuses', {'id': counterid})
+    if keepAsDict:
+        return counterDict
+    else:
+        return CounterStatus(**counterDict) if CounterDict else None

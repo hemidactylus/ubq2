@@ -10,3 +10,9 @@ body {
 .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
   background-color: #2a4a8a;
 }
+
+.riquadro {
+    width: 100px;
+    height: 100px;
+    overflow-y: hidden;
+    }

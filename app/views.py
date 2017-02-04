@@ -6,6 +6,7 @@ from flask import   (
                         url_for,
                         request,
                         g,
+                        abort,
                     )
 from flask_login import  (
     login_user,
@@ -17,6 +18,11 @@ from datetime import datetime
 from markupsafe import Markup
 
 from app import app, lm
+from config import (
+    dbFullName,
+    NOT_FOUND_COUNTER_MESSAGE,
+    NOT_FOUND_COUNTER_VALUE,
+)
 from .forms import (
     LoginForm,
     UserSettingsForm,
@@ -27,10 +33,14 @@ from app.database.dbtools import (
     dbOpenDatabase,
     dbUpdateUser,
     dbGetCounters,
+    dbGetCounter,
+    dbGetCounterStatus,
 )
-from config import dbFullName
 from app.database.models import (
     User,
+)
+from app.database.staticValues import (
+    counterModeMap,
 )
 
 @app.before_request
@@ -66,6 +76,31 @@ def ep_update():
     counterKey=request.args.get('K')
     return('We`ll be there shortly.')
 
+@app.route('/showcounter/<counterid>')
+def ep_showcounter(counterid):
+    user=g.user
+    db=dbOpenDatabase(dbFullName)
+    counterDict=dbGetCounter(db, counterid, keepAsDict=True)
+    #
+    if counterDict is not None:
+        counterStatus=dbGetCounterStatus(db, counterDict['id'], keepAsDict=True)
+        if counterStatus is not None:
+            counterDict['message']='Test Test!'
+            counterDict['value']='19'
+        else:
+            # default: absence of anything
+            counterDict['message']=NOT_FOUND_COUNTER_MESSAGE
+            counterDict['value']=NOT_FOUND_COUNTER_VALUE
+        #
+        return render_template(
+            'counterframe.html',
+            user=user,
+            counter=counterDict
+        )
+    else:
+        # not a recognised counter
+        abort(404)
+
 @app.route('/counters')
 def ep_counters():
     '''
@@ -75,10 +110,20 @@ def ep_counters():
     user=g.user
     db=dbOpenDatabase(dbFullName)
     counters=sorted(dbGetCounters(db))
+    if not user.is_authenticated:
+        # take out the private counters
+        visibleCounters=[cnt.asDict() for cnt in filter(lambda c: c.mode!='p', counters)]
+    else:
+        visibleCounters=[cnt.asDict() for cnt in counters]
+
+    # prepare for pretty output
+    for cnt in visibleCounters:
+        cnt['mode']=counterModeMap[cnt['mode']]
+
     return render_template(
         'counters.html',
         user=user,
-        counters=counters
+        counters=visibleCounters,
     )
 
 @app.route('/changepassword', methods=['GET', 'POST'])
