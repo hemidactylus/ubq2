@@ -106,6 +106,16 @@ def dbRetrieveRecordByKey(db, tableName, key):
     else:
         return None
 
+def dbDeleteRecordsByKey(db, tableName, key):
+    cur=db.cursor()
+    kNames,kValues=zip(*list(key.items()))
+    whereClause=' AND '.join('%s=?' % kn for kn in kNames)
+    deleteStatement='DELETE FROM %s WHERE %s' % (tableName, whereClause)
+    if DB_DEBUG:
+        print('[dbDeleteRecordsByKey] %s' % deleteStatement)
+        print('[dbDeleteRecordsByKey] %s' % ','.join('%s' % iv for iv in kValues))
+    cur.execute(deleteStatement, kValues)
+
 # TABLE-TIED FUNCTION SHORTCUTS
 def dbGetUser(db, username):
     userDict = dbRetrieveRecordByKey(db,'users',{'username': username})
@@ -146,3 +156,16 @@ def dbGetCounterStatus(db, counterid, keepAsDict=False):
         return counterDict
     else:
         return CounterStatus(**counterDict) if CounterDict else None
+
+def dbAddCounter(db, nCounter):
+    dbAddRecordToTable(db,'counters',nCounter.asDict())
+
+def dbUpdateCounter(db,nCounter):
+    dbUpdateRecordOnTable(
+        db,
+        'counters',
+        nCounter.asDict(),
+    )
+
+def dbDeleteCounter(db,counterid):
+    dbDeleteRecordsByKey(db, 'counters', {'id': counterid})

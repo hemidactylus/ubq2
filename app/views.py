@@ -7,6 +7,7 @@ from flask import   (
                         request,
                         g,
                         abort,
+                        escape,
                     )
 from flask_login import  (
     login_user,
@@ -36,9 +37,13 @@ from app.database.dbtools import (
     dbGetCounters,
     dbGetCounter,
     dbGetCounterStatus,
+    dbAddCounter,
+    dbUpdateCounter,
+    dbDeleteCounter,
 )
 from app.database.models import (
     User,
+    Counter,
 )
 from app.database.staticValues import (
     counterModeMap,
@@ -61,7 +66,7 @@ def flashMessage(msgType,msgHeading,msgBody):
         
             'msgType' can be: critical, error, warning, info
     '''
-    flash(Markup('<strong>%s: </strong> %s' % (msgHeading,msgBody)), msgType)
+    flash(Markup('<strong>%s: </strong> %s' % (escape(msgHeading),escape(msgBody))), msgType)
 
 @app.route('/')
 @app.route('/index')
@@ -135,15 +140,49 @@ def ep_editcounter(counterid=None):
     user=g.user
     f=EditCounterForm()
     db=dbOpenDatabase(dbFullName)
-    f.setExistingIDs([cnt.id for cnt in dbGetCounters(db)])
+    counterIDs=[cnt.id for cnt in dbGetCounters(db)]
+    f.setExistingIDs(counterIDs)
     if counterid:
         f.setThisID(counterid)
     if f.validate_on_submit():
         # it can be a savenew or a edit-existing. This is decided
         # by the presence of 'counterid'
-        # TODO: if new, save unless id exists. If old, ensure id is not changed
-        # and if it is, ignore change and issue warning
-        return('Oh, wow')
+        if counterid:
+            if counterid != f.counterid.data:
+                flashMessage('error', 'Forbidden edit', 'a change of id was detected and will be ignored')
+                f.counterid.data=counterid
+        else:
+            if f.counterid.data in counterIDs:
+                flashMessage('critical', 'Cannot create item', 'id exists already')
+                return redirect(url_for('ep_counters'))
+        # create the object
+        newCnt=Counter(
+            id=f.counterid.data,
+            fullname=f.fullname.data,
+            notes=f.notes.data,
+            key=int(f.key.data),
+            mode=f.mode.data,
+            fcolor=f.fcolor.data,
+            bcolor=f.bcolor.data,
+            ncolor=f.ncolor.data,
+        )
+        cntName = str(newCnt)
+        # save, give ok, redirect
+        if counterid:
+            dbUpdateCounter(db, newCnt)
+        else:
+            dbAddCounter(db, newCnt)
+        db.commit()
+        flashMessage(
+            'success',
+            'Done',
+            '%s %sed successfully' % (
+                cntName,
+                ('updat' if counterid else 'insert')
+            )
+        )
+        print('cntName="%s"' % cntName)
+        return redirect(url_for('ep_counters'))
     else:
         if counterid is not None:
             counter=dbGetCounter(db,counterid)
@@ -177,8 +216,25 @@ def ep_colorhelp():
 
 @app.route('/deletecounter/<counterid>')
 @login_required
-def ep_deletecounter(counterid=None):
-    return 'DeleteCounter (%s)' % counterid
+def ep_deletecounter(counterid):
+    '''
+        We allow deletion only if the counter is set to Off.
+        This acts as a safety catch of sorts
+    '''
+    user=g.user
+    db=dbOpenDatabase(dbFullName)
+    tCounter=dbGetCounter(db, counterid)
+    if tCounter:
+        if tCounter.mode!='o':
+            flashMessage('warning', 'Cannot delete', 'only counters with mode set to OFF can be deleted.')
+        else:
+            # actual delete
+            dbDeleteCounter(db, tCounter.id)
+            db.commit()
+            flashMessage('success','Done','%s deleted successfully' % str(tCounter))
+    else:
+        flashMessage('error','Wrong counter','cannot find the requested item.')
+    return redirect(url_for('ep_counters'))
 
 @app.route('/changepassword', methods=['GET', 'POST'])
 @login_required
