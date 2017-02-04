@@ -27,6 +27,7 @@ from .forms import (
     LoginForm,
     UserSettingsForm,
     ChangePasswordForm,
+    EditCounterForm,
 )
 from app.database.dbtools import (
     dbGetUser,
@@ -42,6 +43,7 @@ from app.database.models import (
 from app.database.staticValues import (
     counterModeMap,
 )
+from app.utils.htmlColors import htmlColors
 
 @app.before_request
 def before_request():
@@ -74,7 +76,7 @@ def ep_index():
 def ep_update():
     newNumber=request.args.get('N')
     counterKey=request.args.get('K')
-    return('We`ll be there shortly.')
+    return('We\'ll be there shortly.')
 
 @app.route('/showcounter/<counterid>')
 def ep_showcounter(counterid):
@@ -125,6 +127,58 @@ def ep_counters():
         user=user,
         counters=visibleCounters,
     )
+
+@app.route('/editcounter', methods=['GET','POST'])
+@app.route('/editcounter/<counterid>', methods=['GET','POST'])
+@login_required
+def ep_editcounter(counterid=None):
+    user=g.user
+    f=EditCounterForm()
+    db=dbOpenDatabase(dbFullName)
+    f.setExistingIDs([cnt.id for cnt in dbGetCounters(db)])
+    if counterid:
+        f.setThisID(counterid)
+    if f.validate_on_submit():
+        # it can be a savenew or a edit-existing. This is decided
+        # by the presence of 'counterid'
+        # TODO: if new, save unless id exists. If old, ensure id is not changed
+        # and if it is, ignore change and issue warning
+        return('Oh, wow')
+    else:
+        if counterid is not None:
+            counter=dbGetCounter(db,counterid)
+            if counter is not None:
+                f.counterid.data=counter.id
+                f.fullname.data=counter.fullname
+                f.notes.data=counter.notes
+                f.key.data=str(counter.key)
+                f.mode.data=counter.mode
+                f.fcolor.data=counter.fcolor
+                f.bcolor.data=counter.bcolor
+                f.ncolor.data=counter.ncolor
+            else:
+                flashMessage('error','Wrong counter','cannot find the requested item.')
+                return redirect(url_for('ep_counters'))
+        return render_template(
+            'editcounter.html',
+            user=user,
+            form=f,
+        )
+
+@app.route('/colorhelp')
+def ep_colorhelp():
+    user=g.user
+    colors=sorted(list(htmlColors.items()))
+    return render_template(
+        'colorhelp.html',
+        colors=colors,
+        user=user,
+    )
+
+@app.route('/deletecounter/<counterid>')
+@login_required
+def ep_deletecounter(counterid=None):
+    return 'DeleteCounter (%s)' % counterid
 
 @app.route('/changepassword', methods=['GET', 'POST'])
 @login_required

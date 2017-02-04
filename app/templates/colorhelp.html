@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="container">
+      <h3>Color Help</h3>
+      <hr>
+      <div>
+        A color can be specified with a six-hexadecimal-digit code
+        (the three pairs specifying the red, green and blue components respectively)
+        preceded by a pound sign, as in <code>#C900B0</code>.
+      </div>
+      <div>
+        Alternatively, a color name from the table below can be chosen:
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="col col-sm-1">
+              Color name
+            </th>
+            <th class="col col-sm-3">
+              <!-- a block with that color -->
+            </th>
+        </thead>
+        <tbody>
+        {% for color in colors %}
+          <tr>
+              <td>
+                {{ color[0] }}
+              </td>
+              <td bgcolor="{{color[1]}}">
+              </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <hr>
+    </div>
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}
+

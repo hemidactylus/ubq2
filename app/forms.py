@@ -13,6 +13,9 @@ from wtforms import (
                     )
 from wtforms.validators import DataRequired, NumberRange, EqualTo, Required
 
+from app.utils.validators import ColorExpression, IntegerString, NoDuplicateID
+from app.database.staticValues import counterModes
+
 class LoginForm(FlaskForm):
     username = StringField('UserName', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -29,3 +32,22 @@ class ChangePasswordForm(FlaskForm):
     newpassword = PasswordField('newpassword', [Required(),
                                                 EqualTo('confirmpassword', message='New password mismatch')])
     confirmpassword  = PasswordField('confirmpassword')
+
+class EditCounterForm(FlaskForm):
+    counterid=StringField('id',validators=[DataRequired(),NoDuplicateID()])
+    fullname=StringField('fullname',validators=[DataRequired()])
+    notes=StringField('notes')
+    key=StringField('key',validators=[DataRequired(),IntegerString(allowEmpty=False)])
+    mode=SelectField('mode', choices=counterModes)
+    fcolor=StringField('fcolor',validators=[DataRequired(),ColorExpression()])
+    bcolor=StringField('bcolor',validators=[DataRequired(),ColorExpression()])
+    ncolor=StringField('ncolor',validators=[DataRequired(),ColorExpression()])
+    submit=SubmitField('Save')
+
+    def setExistingIDs(self,existingIDs):
+        self.existingIDs=existingIDs
+        self.newItem=True
+
+    def setThisID(self,thisID):
+        self.thisID=thisID
+        self.newItem=False

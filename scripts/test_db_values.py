@@ -27,7 +27,7 @@ test_counters=[
         'key'         : 123456,
         'mode'        : 'a',
         'fcolor'      : '#000000',
-        'bcolor'      : '#FFFFFF',
+        'bcolor'      : 'blueviolet',
         'ncolor'      : '#464646',
     },
     {

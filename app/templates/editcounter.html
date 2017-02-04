@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {{ super() }}
+ <div class="container">
+  <h2>
+    <i class="fa fa-pencil-square-o fa-lg" aria-hidden="true"></i>
+    Counter properties
+  </h2>
+  <hr>
+  <form action="" method="post" name="login">
+    <div class="form-group">
+     {{ form.hidden_tag() }}
+      <div class="row row-grid"">
+        <div class="col-sm-2">
+          <label for="counterid">
+            ID
+          </label>
+        </div>
+        <div class="col-sm-2">
+          {{ form.counterid(size=10, class_="form-control") }}
+          {% for error in form.counterid.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+        <div class="col-sm-2">
+          <label for="fullname">
+            Full name
+          </label>
+        </div>
+        <div class="col-sm-6">
+          {{ form.fullname(size=30, class_="form-control") }}
+          {% for error in form.fullname.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          <label for="key">
+            Key
+          </label>
+        </div>
+        <div class="col-sm-4">
+          {{ form.key(size=10, class_="form-control") }}
+          {% for error in form.key.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+        <div class="col-sm-2">
+          <label for="mode">
+            Mode
+          </label>
+        </div>
+        <div class="col-sm-4">
+          {{ form.mode(class_="form-control") }}
+          {% for error in form.mode.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          <label for="fcolor">
+            Text color
+            &nbsp;<a href="{{ url_for('ep_colorhelp') }}" target="_blank"><i class="fa fa-question-circle-o fa-lg" aria-hidden="true"></i></a>
+          </label>
+        </div>
+        <div class="col-sm-2">
+          {{ form.fcolor(class_="form-control") }}
+          {% for error in form.fcolor.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+        <div class="col-sm-2">
+          <label for="bcolor">
+            Background color
+            &nbsp;<a href="{{ url_for('ep_colorhelp') }}" target="_blank"><i class="fa fa-question-circle-o fa-lg" aria-hidden="true"></i></a>
+          </label>
+        </div>
+        <div class="col-sm-2">
+          {{ form.bcolor(class_="form-control") }}
+          {% for error in form.bcolor.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+        <div class="col-sm-2">
+          <label for="ncolor">
+            Note color
+            &nbsp;<a href="{{ url_for('ep_colorhelp') }}" target="_blank"><i class="fa fa-question-circle-o fa-lg" aria-hidden="true"></i></a>
+          </label>
+        </div>
+        <div class="col-sm-2">
+          {{ form.ncolor(class_="form-control") }}
+          {% for error in form.ncolor.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          <label for="notes">
+            Notes
+          </label>
+        </div>
+        <div class="col-sm-10">
+          {{ form.notes(size=30, class_="form-control") }}
+          {% for error in form.notes.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          {{ form.submit(class_='btn btn-success') }}
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% block footer %}
+    {{ super() }}
+{% endblock %}
+
+{% endblock %}

@@ -4,7 +4,7 @@
     {{ super() }}
 
     <div class="container">
-      <h2>Counters</h2>
+      <h3>Counters</h3>
       <hr>
       <table class="table table-hover">
         <thead>
@@ -48,12 +48,27 @@
               <td><small>{{ counter.notes }}</small></td>
               <td>{{ counter.mode }}</td>
                 {% if user.is_authenticated %}
-                  <td>DEL, EDIT</td>
+                  <td>
+                    <a class="btn btn-success" href="{{  url_for('ep_editcounter', counterid=counter.id) }}">
+                      <i class="fa fa-pencil-square-o fa-lg" aria-hidden="true"></i>
+                    </a>
+                    &nbsp;&nbsp;
+                    <a class="btn btn-success" href="{{ url_for('ep_deletecounter', counterid=counter.id) }}">
+                      <i class="fa fa-trash fa-lg" aria-hidden="true"></i>
+                    </a>
+                  </td>
                 {% endif %}
           </tr>
         {% endfor %}
         </tbody>
       </table>
+      <hr>
+        {% if user.is_authenticated %}
+          <a class="btn btn-success" href="{{ url_for('ep_editcounter') }}">
+            <i class="fa fa-plus-square-o fa-lg" aria-hidden="true"></i>
+            New counter...
+          </a>
+        {% endif %}
     </div>
 
     {% block footer %}
