@@ -27,8 +27,8 @@ test_counters=[
         'key'         : 123456,
         'mode'        : 'a',
         'fcolor'      : '#000000',
-        'bcolor'      : 'blueviolet',
-        'ncolor'      : '#464646',
+        'bcolor'      : '#C080FF',
+        'ncolor'      : '#400000',
     },
     {
         'id'          : 'HL9',
@@ -36,8 +36,8 @@ test_counters=[
         'notes'       : 'The bad guy among the test-value counters',
         'key'         : 999999,
         'mode'        : 'p',
-        'fcolor'      : '#0E6F21',
-        'bcolor'      : '#29B343',
-        'ncolor'      : '#170E6F',
+        'fcolor'      : '#00FFFF',
+        'bcolor'      : '#404040',
+        'ncolor'      : '#FFFF60',
     },
 ]

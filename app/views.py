@@ -57,7 +57,7 @@ from app.database.models import (
 from app.database.staticValues import (
     counterModeMap,
 )
-from app.counters.counters import signalNumberToCounter
+from app.counters.counters import signalNumberToCounter, checkCounterActivity
 from app.utils.htmlColors import htmlColors
 from app.utils.dateformats import formatTimestamp, formatTimeinterval
 from app.utils.parsing import integerOrNone
@@ -107,6 +107,18 @@ def ep_update():
         return '3'
     else:
         return signalNumberToCounter(counterKey, newNumber)
+
+@app.route('/checkbeat')
+def ep_checkbeat():
+    '''
+        this is called from a heartbeat job and triggers offline-counter-checks
+    '''
+    db=dbOpenDatabase(dbFullName)
+    allCounters=dbGetCounters(db)
+    for cnt in allCounters:
+        checkCounterActivity(db, cnt.id)
+    db.commit()
+    return '0'
 
 @app.route('/embedcode/<counterid>')
 @login_required

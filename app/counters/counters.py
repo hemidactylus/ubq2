@@ -15,6 +15,8 @@ from app.database.dbtools import (
 )
 from config import (
     dbFullName,
+    COUNTER_OFFLINE_TIMEOUT,
+    COUNTER_ALERT_TIMEOUT,
 )
 
 def constrain(num,min,max,outervalue):
@@ -51,14 +53,45 @@ def signalNumberToCounter(cKey, nNumber):
             # really new number
             newStatus['value']=newValue
             newStatus['lastchange']=newStatus['lastupdate']
-        # TEMP HERE SHOULD LEAVE THESE TWO FIELDS TO THE ONLINECHECKER
-        newStatus['online']=1
-        newStatus['tonotify']=0
+        if oldStatus is None:
+            # right now, at the update, we assume counter online and no notify needed
+            newStatus['online']=1
+            newStatus['tonotify']=0
         # write changes to record
         if oldStatus is not None:
             dbUpdateCounterStatus(db,newStatus['id'],newStatus)
         else:
             dbAddCounterStatus(db,newStatus)
-        print('Here Should Invoke Onlinechecker/Statter')
+        # invoke the offlinechecker
+        checkCounterActivity(db, tCounter.id)
+        #
         db.commit()
         return '0'
+
+def checkCounterActivity(db, counterid):
+    '''
+        depending on the last activity time and the current time,
+        possible changes online <--> offline are handled here,
+        with notifications to admin whenever deemed necessary
+    '''
+    # if we update counter status - we assume it exists at this point,
+    # otherwise we silently do nothing
+    cntStatus=dbGetCounterStatus(db,counterid)
+    if cntStatus is not None:
+        elapsed=int(time()-cntStatus.lastupdate)
+        newOnline=(elapsed<COUNTER_OFFLINE_TIMEOUT)
+        newStatus={}
+        if cntStatus.online != newOnline:
+            # act upon such a change
+            newStatus['online']=int(newOnline)
+            newStatus['tonotify']=int(not(newOnline))
+        if not newOnline and elapsed>COUNTER_ALERT_TIMEOUT:
+            # it has been offline for more than the alert-time:
+            #   if in the time window, send notification out
+            #   mark tonotify=False in any case
+            if isWithinAlertTime(datetime.now()):
+                print('HERE SHOULD ALERT OF OFFLINE "%s"!' % counterid)
+            newStatus['tonotify']=0
+        if newStatus:
+            newStatus['id']=counterid
+            dbUpdateCounterStatus(db,counterid,newStatus)

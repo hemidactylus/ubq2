@@ -22,8 +22,9 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 # Doing and to-do
 
-- upon insertion of counters: no two counters can have the same key ! Enforce this constraint
-- do it via status,return on all DB calls!
+- do it via status,return on all DB calls! (some already have it)
+
+- adjust all timezone issues (displays, time checks and so on)
 
 # General notes
 
