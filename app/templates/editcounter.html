@@ -18,7 +18,7 @@
           </label>
         </div>
         <div class="col-sm-2">
-          {{ form.counterid(size=10, class_="form-control") }}
+          {{ form.counterid(size=10, class_="form-control", placeholder="Unique short identifier") }}
           {% for error in form.counterid.errors %}
             <span style="color: red;">{{ error }}</span>
           {% endfor %}
@@ -29,7 +29,7 @@
           </label>
         </div>
         <div class="col-sm-6">
-          {{ form.fullname(size=30, class_="form-control") }}
+          {{ form.fullname(size=30, class_="form-control", placeholder="Long counter name") }}
           {% for error in form.fullname.errors %}
             <span style="color: red;">{{ error }}</span>
           {% endfor %}
@@ -42,7 +42,7 @@
           </label>
         </div>
         <div class="col-sm-4">
-          {{ form.key(size=10, class_="form-control") }}
+          {{ form.key(size=10, class_="form-control", placeholder="Secret key for updates") }}
           {% for error in form.key.errors %}
             <span style="color: red;">{{ error }}</span>
           {% endfor %}
@@ -64,6 +64,10 @@
           <label for="fcolor">
             Text color
             &nbsp;<a href="{{ url_for('ep_colorhelp') }}" target="_blank"><i class="fa fa-question-circle-o fa-lg" aria-hidden="true"></i></a>
+            &nbsp;
+            <span style="color: {{ form.fcolor.data }}">
+              <i class="fa fa-square fa-2x" aria-hidden="true"></i>
+            </span>
           </label>
         </div>
         <div class="col-sm-2">
@@ -74,8 +78,12 @@
         </div>
         <div class="col-sm-2">
           <label for="bcolor">
-            Background color
+            Back color
             &nbsp;<a href="{{ url_for('ep_colorhelp') }}" target="_blank"><i class="fa fa-question-circle-o fa-lg" aria-hidden="true"></i></a>
+            &nbsp;
+            <span style="color: {{ form.bcolor.data }}">
+              <i class="fa fa-square fa-2x" aria-hidden="true"></i>
+            </span>
           </label>
         </div>
         <div class="col-sm-2">
@@ -88,6 +96,10 @@
           <label for="ncolor">
             Note color
             &nbsp;<a href="{{ url_for('ep_colorhelp') }}" target="_blank"><i class="fa fa-question-circle-o fa-lg" aria-hidden="true"></i></a>
+            &nbsp;
+            <span style="color: {{ form.ncolor.data }}">
+              <i class="fa fa-square fa-2x" aria-hidden="true"></i>
+            </span>
           </label>
         </div>
         <div class="col-sm-2">

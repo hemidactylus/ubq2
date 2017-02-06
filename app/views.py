@@ -16,6 +16,7 @@ from flask_login import  (
     login_required,
 )
 from datetime import datetime
+from time import time
 from markupsafe import Markup
 
 from app import app, lm
@@ -23,6 +24,14 @@ from config import (
     dbFullName,
     NOT_FOUND_COUNTER_MESSAGE,
     NOT_FOUND_COUNTER_VALUE,
+    DEFAULT_COUNTER_COLORS,
+    COUNTER_OFF_MESSAGE,
+    COUNTER_OFF_VALUE,
+    COUNTER_MAINTENANCE_MESSAGE,
+    COUNTER_MAINTENANCE_VALUE,
+    COUNTER_OFFLINE_MESSAGE_TEMPLATE,
+    COUNTER_OFFLINE_VALUE,
+    MODE_ICON_MAP,
 )
 from .forms import (
     LoginForm,
@@ -48,7 +57,10 @@ from app.database.models import (
 from app.database.staticValues import (
     counterModeMap,
 )
+from app.counters.counters import signalNumberToCounter
 from app.utils.htmlColors import htmlColors
+from app.utils.dateformats import formatTimestamp, formatTimeinterval
+from app.utils.parsing import integerOrNone
 
 @app.before_request
 def before_request():
@@ -79,9 +91,28 @@ def ep_index():
 
 @app.route('/update1.php')
 def ep_update():
-    newNumber=request.args.get('N')
-    counterKey=request.args.get('K')
-    return('We\'ll be there shortly.')
+    '''
+        this call, which sends a number-signal to a counter,
+        historically has NO COUNTER ID. Identification of counter
+        relies on the secret-key (ugly, future fix?)
+    '''
+    newNumber=integerOrNone(request.args.get('N'))
+    counterKey=integerOrNone(request.args.get('K'))
+    # this function must return:
+    #   3   if malformed request
+    #   2   key is unregistered
+    #   1   not enough arguments
+    #   0   all well (including when N is out of bounds, in which case -> -1)
+    if newNumber is None or counterKey is None:
+        return '3'
+    else:
+        return signalNumberToCounter(counterKey, newNumber)
+
+@app.route('/embedcode/<counterid>')
+@login_required
+def ep_embedcode(counterid):
+    user=g.user
+    return('ToBeImplemented: embedcode(%s)' % counterid)
 
 @app.route('/showcounter/<counterid>')
 def ep_showcounter(counterid):
@@ -92,8 +123,25 @@ def ep_showcounter(counterid):
     if counterDict is not None:
         counterStatus=dbGetCounterStatus(db, counterDict['id'], keepAsDict=True)
         if counterStatus is not None:
-            counterDict['message']='Test Test!'
-            counterDict['value']='19'
+            # HERE the logic to decide what to show
+            if counterDict['mode']=='o':
+                counterDict['message']=COUNTER_OFF_MESSAGE
+                counterDict['value']=COUNTER_OFF_VALUE
+            elif counterDict['mode'] in ['a','p']:
+                if counterStatus['online']:
+                    # online display
+                    counterDict['message']=formatTimestamp(counterStatus['lastchange'])
+                    counterDict['value']=str(counterStatus['value'])
+                else:
+                    # offline display
+                    counterDict['message']=COUNTER_OFFLINE_MESSAGE_TEMPLATE % \
+                        formatTimeinterval(time()-counterStatus['lastupdate'])
+                    counterDict['value']=COUNTER_OFFLINE_VALUE
+            elif counterDict['mode']=='m':
+                counterDict['message']=COUNTER_MAINTENANCE_MESSAGE
+                counterDict['value']=COUNTER_MAINTENANCE_VALUE
+            else:
+                raise ValueError('Invalid counterdict.mode (counter %s)' % counterid)
         else:
             # default: absence of anything
             counterDict['message']=NOT_FOUND_COUNTER_MESSAGE
@@ -125,7 +173,8 @@ def ep_counters():
 
     # prepare for pretty output
     for cnt in visibleCounters:
-        cnt['mode']=counterModeMap[cnt['mode']]
+        cnt['modedesc']=counterModeMap[cnt['mode']]
+        cnt['modeicon']=MODE_ICON_MAP[cnt['mode']]
 
     return render_template(
         'counters.html',
@@ -168,20 +217,28 @@ def ep_editcounter(counterid=None):
         )
         cntName = str(newCnt)
         # save, give ok, redirect
-        if counterid:
-            dbUpdateCounter(db, newCnt)
+        print('CounterID=%s (isnone=%s)' % (counterid, counterid is None))
+        if counterid is not None:
+            status,msg=dbUpdateCounter(db, newCnt)
         else:
-            dbAddCounter(db, newCnt)
-        db.commit()
-        flashMessage(
-            'success',
-            'Done',
-            '%s %sed successfully' % (
-                cntName,
-                ('updat' if counterid else 'insert')
+            print('dbAC')
+            status,msg=dbAddCounter(db, newCnt)
+        if status==0:
+            db.commit()
+            flashMessage(
+                'success',
+                'Done',
+                '%s %sed successfully' % (
+                    cntName,
+                    ('updat' if counterid else 'insert')
+                )
             )
-        )
-        print('cntName="%s"' % cntName)
+        else:
+            flashMessage(
+                'error',
+                'Could not proceed',
+                'error while updating record (%s)' % msg,
+            )
         return redirect(url_for('ep_counters'))
     else:
         if counterid is not None:
@@ -198,6 +255,10 @@ def ep_editcounter(counterid=None):
             else:
                 flashMessage('error','Wrong counter','cannot find the requested item.')
                 return redirect(url_for('ep_counters'))
+        else:
+            f.fcolor.data=DEFAULT_COUNTER_COLORS['fcolor'] if not f.fcolor.data else f.fcolor.data
+            f.bcolor.data=DEFAULT_COUNTER_COLORS['bcolor'] if not f.bcolor.data else f.bcolor.data
+            f.ncolor.data=DEFAULT_COUNTER_COLORS['ncolor'] if not f.ncolor.data else f.ncolor.data
         return render_template(
             'editcounter.html',
             user=user,

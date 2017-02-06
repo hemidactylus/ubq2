@@ -21,12 +21,16 @@
             <th class="col col-sm-3">
               Notes
             </th>
-            <th class="col col-sm-2">
-              Mode
-            </th>
             {% if user.is_authenticated %}
                 <th class="col col-sm-2">
+                  Mode
+                </th>
+                <th class="col col-sm-2">
                   Actions
+                </th>
+            {% else %}
+                <th class="col col-sm-4">
+                  Mode
                 </th>
             {% endif %}
           </tr>
@@ -46,14 +50,21 @@
               <td>{{ counter.id }}</td>
               <td>{{ counter.fullname }}</td>
               <td><small>{{ counter.notes }}</small></td>
-              <td>{{ counter.mode }}</td>
+              <td>
+                <i class="fa {{ counter.modeicon }} fa-lg" aria-hidden="true"></i>                
+                {{ counter.modedesc }}
+              </td>
                 {% if user.is_authenticated %}
                   <td>
                     <a class="btn btn-success" href="{{  url_for('ep_editcounter', counterid=counter.id) }}">
                       <i class="fa fa-pencil-square-o fa-lg" aria-hidden="true"></i>
                     </a>
                     &nbsp;&nbsp;
-                    <a class="btn btn-success" href="{{ url_for('ep_deletecounter', counterid=counter.id) }}">
+                    <a class="btn btn-success" href="{{ url_for('ep_embedcode', counterid=counter.id) }}">
+                      <i class="fa fa-code fa-lg" aria-hidden="true"></i>
+                    </a>
+                    &nbsp;&nbsp;
+                    <a class="btn btn-danger" href="{{ url_for('ep_deletecounter', counterid=counter.id) }}">
                       <i class="fa fa-trash fa-lg" aria-hidden="true"></i>
                     </a>
                   </td>
@@ -68,8 +79,8 @@
             <i class="fa fa-plus-square-o fa-lg" aria-hidden="true"></i>
             New counter...
           </a>
+          <hr>
         {% endif %}
-      <hr>
     </div>
 
     {% block footer %}

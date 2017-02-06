@@ -35,11 +35,11 @@ def dbAddRecordToTable(db,tableName,recordDict):
     #
     return
 
-def dbUpdateRecordOnTable(db,tableName,newDict):
+def dbUpdateRecordOnTable(db,tableName,newDict, allowPartial=False):
     dbKey=dbTablesDesc[tableName]['primary_key'][0]
     otherFields=list(map(itemgetter(0),dbTablesDesc[tableName]['columns']))
-    updatePart=', '.join('%s=?' % of for of in otherFields)
-    updatePartValues=[newDict[of] for of in otherFields]
+    updatePart=', '.join('%s=?' % of for of in otherFields if not allowPartial or of in newDict)
+    updatePartValues=[newDict[of] for of in otherFields if not allowPartial or of in newDict]
     whereClause='%s=?' % dbKey
     whereValue=newDict[dbKey]
     updateStatement='UPDATE %s SET %s WHERE %s' % (tableName,updatePart,whereClause)
@@ -125,7 +125,15 @@ def dbAddUser(db, nUser):
     dbAddRecordToTable(db,'users',nUser.asDict())
 
 def dbAddCounter(db, nCounter):
-    dbAddRecordToTable(db,'counters',nCounter.asDict())
+    '''
+        must ensure no two counters have the same key!
+        returns nonzero on error
+    '''
+    if nCounter.key in [cnt.key for cnt in dbGetCounters(db)]:
+        return (1,'Duplicate key')
+    else:
+        dbAddRecordToTable(db,'counters',nCounter.asDict())
+        return (0,'')
 
 def dbUpdateUser(db,nUser):
     dbUpdateRecordOnTable(
@@ -150,22 +158,36 @@ def dbGetCounter(db, counterid, keepAsDict=False):
     else:
         return Counter(**counterDict) if counterDict else None
 
+def dbGetCounterByKey(db, cKey, keepAsDict=False):
+    counterDict = dbRetrieveRecordByKey(db, 'counters', {'key': cKey})
+    if keepAsDict:
+        return counterDict
+    else:
+        return Counter(**counterDict) if counterDict else None
+
 def dbGetCounterStatus(db, counterid, keepAsDict=False):
     counterDict = dbRetrieveRecordByKey(db, 'counterstatuses', {'id': counterid})
     if keepAsDict:
         return counterDict
     else:
-        return CounterStatus(**counterDict) if CounterDict else None
+        return CounterStatus(**counterDict) if counterDict else None
 
-def dbAddCounter(db, nCounter):
-    dbAddRecordToTable(db,'counters',nCounter.asDict())
+def dbUpdateCounterStatus(db, counterid, nCounterStatus):
+    dbUpdateRecordOnTable(db, 'counterstatuses', nCounterStatus, allowPartial=True)
+
+def dbAddCounterStatus(db, nCounterStatus):
+    dbAddRecordToTable(db, 'counterstatuses', nCounterStatus)
 
 def dbUpdateCounter(db,nCounter):
-    dbUpdateRecordOnTable(
-        db,
-        'counters',
-        nCounter.asDict(),
-    )
+    if nCounter.key in [cnt.key for cnt in dbGetCounters(db) if cnt.id!=nCounter.id]:
+        return (1,'Duplicate key')
+    else:
+        dbUpdateRecordOnTable(
+            db,
+            'counters',
+            nCounter.asDict(),
+        )
+        return (0,'')
 
 def dbDeleteCounter(db,counterid):
     dbDeleteRecordsByKey(db, 'counters', {'id': counterid})

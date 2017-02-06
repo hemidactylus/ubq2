@@ -2,9 +2,28 @@
 UBQ 2 SERVER-SIDE TECH SPECS
 ----------------------------
 
+# Counter modes:
+    'a'     Active
+                responds to updates
+                raises warnings on offlines
+                visible in the list page
+    'p'     Private
+                responds to updates
+                raises warnings on offlines
+                visible only for iframes that know the code
+    'm'     Maintenance
+                responds to updates
+                raises warnings on offlines
+                displays "--" / "Maintenance" in any case
+    'o'     Off
+                does NOT respond to updates (yields a 2 'key unregistered')
+                does NOT raise warnings
+                displays "--" / "Counter off" in any case
+
 # Doing and to-do
 
-- counters view: separate the admin view and the visitor view.
+- upon insertion of counters: no two counters can have the same key ! Enforce this constraint
+- do it via status,return on all DB calls!
 
 # General notes
 
