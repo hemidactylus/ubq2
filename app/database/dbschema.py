@@ -34,5 +34,11 @@ dbTablesDesc={
             ('email', 'TEXT'),
             ('subscribed', 'INTEGER'),
         ],
-    }
+    },
+    'settings': {
+        'primary_key': ('key', 'TEXT'), # a unique string identifying the setting
+        'columns': [
+            ('value', 'TEXT'),          # this setting's value - always a string
+        ],
+    },
 }

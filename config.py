@@ -1,4 +1,5 @@
 import os
+from datetime import time
 
 # directories and so on
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -12,9 +13,15 @@ DB_DIRECTORY=os.path.join(basedir,'app/database')
 DB_NAME='ubq2.db'
 DB_DEBUG=False
 
-# timeout settings
-COUNTER_OFFLINE_TIMEOUT=60 # seconds
-COUNTER_ALERT_TIMEOUT=600 # seconds
+# iframe embed code template
+IFRAME_EMBED_CODE='''<iframe
+    src="{prefix}{url}"
+    height="110" width="110"
+    style="width: 100px; height: 100px; overflow-y: hidden;"
+    scrolling="no" 
+    seamless="seamless">
+</iframe>'''
+APP_COMPLETE_ADDRESS='http://www.salamandrina.net/ubq'
 
 # counter appearance settings
 NOT_FOUND_COUNTER_MESSAGE='(no info)'
@@ -23,7 +30,7 @@ COUNTER_OFF_MESSAGE='Counter OFF'
 COUNTER_OFF_VALUE='--'
 COUNTER_MAINTENANCE_MESSAGE='Maintenance'
 COUNTER_MAINTENANCE_VALUE='--'
-COUNTER_OFFLINE_MESSAGE_TEMPLATE='Offline for %s'
+COUNTER_OFFLINE_MESSAGE_TEMPLATE='Off for %s'
 COUNTER_OFFLINE_VALUE='--'
 DEFAULT_COUNTER_COLORS={
     'fcolor': 'Gold',

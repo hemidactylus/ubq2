@@ -1,3 +1,4 @@
+import pytz
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
 from wtforms.fields.html5 import EmailField
@@ -52,3 +53,11 @@ class EditCounterForm(FlaskForm):
     def setThisID(self,thisID):
         self.thisID=thisID
         self.newItem=False
+
+class SettingsForm(FlaskForm):
+    offlinetimeout=IntegerField('offlinetimeout',validators=[NumberRange(min=1)])
+    alerttimeout=IntegerField('alerttimeout',validators=[NumberRange(min=1)])
+    alertwindowstart=StringField('alertwindowstart',validators=[DataRequired()])
+    alertwindowend=StringField('alertwindowend',validators=[DataRequired()])
+    workingtimezone=SelectField('workingtimezones',choices=[(t,t) for t in sorted(pytz.common_timezones)])
+    submit=SubmitField('Save settings')

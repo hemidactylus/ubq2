@@ -5,6 +5,7 @@
 
 from datetime import datetime, timedelta
 from time import time
+import pytz
 
 from app.database.dbtools import (
     dbOpenDatabase,
@@ -12,11 +13,13 @@ from app.database.dbtools import (
     dbUpdateCounterStatus,
     dbGetCounterStatus,
     dbAddCounterStatus,
+    dbGetSetting,
 )
 from config import (
     dbFullName,
-    COUNTER_OFFLINE_TIMEOUT,
-    COUNTER_ALERT_TIMEOUT,
+)
+from app.utils.dateformats import (
+    localDateFromTimestamp,
 )
 
 def constrain(num,min,max,outervalue):
@@ -49,7 +52,7 @@ def signalNumberToCounter(cKey, nNumber):
             'lastupdate': int(time()),
         }
         newValue=constrain(nNumber,0,99,-2)
-        if oldStatus is None or oldStatus.value != newValue:
+        if oldStatus is None or not oldStatus.online or oldStatus.value != newValue:
             # really new number
             newStatus['value']=newValue
             newStatus['lastchange']=newStatus['lastupdate']
@@ -79,19 +82,28 @@ def checkCounterActivity(db, counterid):
     cntStatus=dbGetCounterStatus(db,counterid)
     if cntStatus is not None:
         elapsed=int(time()-cntStatus.lastupdate)
-        newOnline=(elapsed<COUNTER_OFFLINE_TIMEOUT)
+        newOnline=(elapsed<int(dbGetSetting(db,'COUNTER_OFFLINE_TIMEOUT')))
         newStatus={}
         if cntStatus.online != newOnline:
             # act upon such a change
             newStatus['online']=int(newOnline)
             newStatus['tonotify']=int(not(newOnline))
-        if not newOnline and elapsed>COUNTER_ALERT_TIMEOUT:
+        if not newOnline and elapsed>int(dbGetSetting(db,'COUNTER_ALERT_TIMEOUT')) and cntStatus.tonotify:
             # it has been offline for more than the alert-time:
             #   if in the time window, send notification out
             #   mark tonotify=False in any case
-            if isWithinAlertTime(datetime.now()):
+            if isWithinAlertTime(db, time()):
                 print('HERE SHOULD ALERT OF OFFLINE "%s"!' % counterid)
             newStatus['tonotify']=0
         if newStatus:
             newStatus['id']=counterid
             dbUpdateCounterStatus(db,counterid,newStatus)
+
+def isWithinAlertTime(db, timestamp):
+    '''
+        returns True if the provided utc timestamp falls within the alert-sending time window
+    '''
+    tzDate=localDateFromTimestamp(timestamp,dbGetSetting(db,'WORKING_TIMEZONE'))
+    aStart=datetime.strptime(dbGetSetting(db,'ALERT_WINDOW_START'),'%H:%M').time()
+    aEnd=datetime.strptime(dbGetSetting(db,'ALERT_WINDOW_END'),'%H:%M').time()
+    return tzDate.time() >= aStart and tzDate.time() <= aEnd

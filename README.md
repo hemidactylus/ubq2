@@ -2,7 +2,25 @@
 UBQ 2 SERVER-SIDE TECH SPECS
 ----------------------------
 
-# Counter modes:
+# Doing and to-do
+
+- svg digits
+
+- settings: the machine to save them on db and the form
+
+- Logging system, tracking system, their plot with D3 and a smart way of archiving historical data
+- do it via status,return on all DB calls! (some already have it)
+
+- all email notification unified service is to be done
+
+- "embeddable code" page with literal and indentation
+
+- also the system service (?) that keeps the beat will have a configurable rhythm
+- it will not necessarily attach to an endpoint, perhaps: rather it's becoming a separate part of the python codebase
+
+# General notes
+
+* Counter modes:
     'a'     Active
                 responds to updates
                 raises warnings on offlines
@@ -20,14 +38,6 @@ UBQ 2 SERVER-SIDE TECH SPECS
                 does NOT raise warnings
                 displays "--" / "Counter off" in any case
 
-# Doing and to-do
-
-- do it via status,return on all DB calls! (some already have it)
-
-- adjust all timezone issues (displays, time checks and so on)
-
-# General notes
-
 * Functionalities:
     - must serve html contents, one per counter, with the boxed number and the timer and the info
         (possibly with cookie-based proper access stats)
@@ -44,7 +54,7 @@ UBQ 2 SERVER-SIDE TECH SPECS
     
     - must have cron-based log analysis and stats
     - must have cron-based offline checks
-    
+
 * Ordinary requests:
     - http://www.salamandrina.net/ubq/update1.php?N=<STATUS_NUMBER>&K=<COUNTER_KEY>
     - http://salamandrina.net/ubq/index.html
@@ -52,10 +62,6 @@ UBQ 2 SERVER-SIDE TECH SPECS
         COUNTER_ID = CC1, EM1, ...
     
     (there's some css and an iframe embedding at the moment)
-
-* Automated checks
-
-* Data structure and panels
 
 * Sending gmail from python with an application API
     SOLVED in library added to this project

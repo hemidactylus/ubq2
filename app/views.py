@@ -32,12 +32,15 @@ from config import (
     COUNTER_OFFLINE_MESSAGE_TEMPLATE,
     COUNTER_OFFLINE_VALUE,
     MODE_ICON_MAP,
+    IFRAME_EMBED_CODE,
+    APP_COMPLETE_ADDRESS,
 )
 from .forms import (
     LoginForm,
     UserSettingsForm,
     ChangePasswordForm,
     EditCounterForm,
+    SettingsForm,
 )
 from app.database.dbtools import (
     dbGetUser,
@@ -49,6 +52,8 @@ from app.database.dbtools import (
     dbAddCounter,
     dbUpdateCounter,
     dbDeleteCounter,
+    dbGetSetting,
+    dbSaveSetting,
 )
 from app.database.models import (
     User,
@@ -124,7 +129,18 @@ def ep_checkbeat():
 @login_required
 def ep_embedcode(counterid):
     user=g.user
-    return('ToBeImplemented: embedcode(%s)' % counterid)
+    db=dbOpenDatabase(dbFullName)
+    counter=dbGetCounter(db, counterid)
+    iframeCode=IFRAME_EMBED_CODE.format(
+        prefix=APP_COMPLETE_ADDRESS,
+        url=url_for('ep_showcounter',counterid=counterid)
+    )
+    return render_template(
+        'embedcode.html',
+        user=user,
+        embedcode=[escape(li) for li in iframeCode.split('\n') if li.strip()!=''],
+        fullname=counter.fullname,
+    )
 
 @app.route('/showcounter/<counterid>')
 def ep_showcounter(counterid):
@@ -142,7 +158,10 @@ def ep_showcounter(counterid):
             elif counterDict['mode'] in ['a','p']:
                 if counterStatus['online']:
                     # online display
-                    counterDict['message']=formatTimestamp(counterStatus['lastchange'])
+                    counterDict['message']=formatTimestamp(
+                        counterStatus['lastchange'],
+                        dbGetSetting(db,'WORKING_TIMEZONE')
+                    )
                     counterDict['value']=str(counterStatus['value'])
                 else:
                     # offline display
@@ -191,6 +210,7 @@ def ep_counters():
     return render_template(
         'counters.html',
         user=user,
+        title='Counter Listing',
         counters=visibleCounters,
     )
 
@@ -273,6 +293,7 @@ def ep_editcounter(counterid=None):
             f.ncolor.data=DEFAULT_COUNTER_COLORS['ncolor'] if not f.ncolor.data else f.ncolor.data
         return render_template(
             'editcounter.html',
+            title='Counter Properties',
             user=user,
             form=f,
         )
@@ -283,6 +304,7 @@ def ep_colorhelp():
     colors=sorted(list(htmlColors.items()))
     return render_template(
         'colorhelp.html',
+        title='Color Help',
         colors=colors,
         user=user,
     )
@@ -358,6 +380,33 @@ def ep_login():
                            user=user,
     )
 
+@app.route('/generalsettings', methods=['GET', 'POST'])
+@login_required
+def ep_generalsettings():
+    user=g.user
+    db=dbOpenDatabase(dbFullName)
+    f=SettingsForm()
+    if f.validate_on_submit():
+        # load and validate values in form and save them to DB
+        dbSaveSetting(db,'COUNTER_OFFLINE_TIMEOUT',f.offlinetimeout.data)
+        db.commit()
+        flashMessage('info','Done','settings updated')
+        return redirect(url_for('ep_index'))
+    else:
+        # load settings from DB to the form
+        f.offlinetimeout.data=dbGetSetting(db,'COUNTER_OFFLINE_TIMEOUT')
+        f.alerttimeout.data=dbGetSetting(db,'COUNTER_ALERT_TIMEOUT')
+        f.alertwindowstart.data=dbGetSetting(db,'ALERT_WINDOW_START')
+        f.alertwindowend.data=dbGetSetting(db,'ALERT_WINDOW_END')
+        f.workingtimezone.data=dbGetSetting(db,'WORKING_TIMEZONE')
+        # show the form
+        return render_template(
+            'generalsettings.html',
+            user=user,
+            title='General settings',
+            form=f
+        )
+
 @app.route('/usersettings', methods=['GET','POST'])
 @login_required
 def ep_usersettings():
@@ -376,6 +425,7 @@ def ep_usersettings():
         f.subscribed.data=bool(user.subscribed)
         return render_template(
             'usersettings.html',
+            title='User Settings',
             user=user,
             form=f,
         )

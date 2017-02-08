@@ -24,6 +24,21 @@ class dictableObject():
             del _kwargs[df]
         return _kwargs
 
+class Setting(dictableObject):
+    namedFields=[
+        'key',
+        'value',
+    ]
+
+    def __init__(self,**kwargs):
+        _kwargs=self.consumeKWargs(**kwargs)
+        # no additional conversions here
+        if _kwargs:
+            raise ValueError('Unknown argument(s): %s' % ', '.join(_kwargs.keys()))
+
+    def __str__(self):
+        return '<Setting %s->"%s">' % (self.key, self.value)
+
 class Counter(dictableObject):
 
     namedFields=[

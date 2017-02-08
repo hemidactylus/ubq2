@@ -10,10 +10,12 @@ from app.database.dbtools import (
     dbCreateTable,
     dbAddUser,
     dbAddCounter,
+    dbAddSetting,
 )
 from app.database.dbschema import dbTablesDesc
 from config import dbFullName
-from app.database.models import User, Counter
+from app.database.models import User, Counter, Setting
+from app.database.default_db_values import default_settings
 from app.utils.interactive import ask_for_confirmation, logDo
 from test_db_values import test_users, test_counters
 
@@ -29,10 +31,10 @@ if __name__=='__main__':
         retVal=logDo(lambda:dbCreateTable(db, tName, tContents),'    * Creating table "%s"' % tName)
 
     print('  * Populating tables...')
-    adders=[dbAddUser,dbAddCounter]
-    vals=[test_users,test_counters]
-    obs=[User,Counter]
-    onames=['user','counter']
+    adders=[dbAddUser,dbAddCounter,dbAddSetting]
+    vals=[test_users,test_counters,default_settings]
+    onames=['user','counter','setting']
+    obs=[User,Counter,Setting]
     for adder,vals,ob,oname in zip(adders,vals,obs,onames):
         print('    * Table "%s"' % oname)
         for oStruct in vals:

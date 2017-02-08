@@ -11,12 +11,6 @@ body {
   background-color: #F06B10;
 }
 
-.riquadro {
-    width: 100px;
-    height: 100px;
-    overflow-y: hidden;
-}
-
 .footer-colors {
     color: white;
     background-color: #0d224f;

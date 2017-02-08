@@ -124,6 +124,22 @@ def dbGetUser(db, username):
 def dbAddUser(db, nUser):
     dbAddRecordToTable(db,'users',nUser.asDict())
 
+def dbAddSetting(db, nSetting):
+    dbAddRecordToTable(db,'settings',nSetting.asDict())
+
+def dbSaveSetting(db, sKey, sVal):
+    dbUpdateRecordOnTable(db,'settings',{'key': sKey, 'value': sVal})
+
+def dbGetSetting(db, sKey, default=None):
+    '''
+        returns just the VALUE
+    '''
+    sDict = dbRetrieveRecordByKey(db,'settings',{'key': sKey})
+    if sDict is not None:
+        return sDict['value']
+    else:
+        return None
+
 def dbAddCounter(db, nCounter):
     '''
         must ensure no two counters have the same key!

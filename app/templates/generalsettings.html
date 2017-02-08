@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {{ super() }}
+<div class="container">
+  <h2>
+    <i class="fa fa-sticky-note-o fa-lg" aria-hidden="true"></i>
+    General settings
+  </h2>
+  <hr>
+  <form action="" method="post" name="generalsettings">
+    <div class="form-group">
+      {{ form.hidden_tag() }}
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          <label for="offlinetimeout">
+            Offline after inactive for
+          </label>
+        </div>
+        <div class="col-sm-2">
+          {{ form.offlinetimeout(size=12, class_="form-control") }}
+          {% for error in form.offlinetimeout.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+        <div class="col-sm-1">
+          <label for="offlinetimeout">
+            seconds.
+          </label>
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          <label for="alerttimeout">
+            Alert when offline for
+          </label>
+        </div>
+        <div class="col-sm-2">
+          {{ form.alerttimeout(size=12, class_="form-control") }}
+          {% for error in form.alerttimeout.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+        <div class="col-sm-1">
+          <label for="alerttimeout">
+            seconds.
+          </label>
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          <label for="alertwindowstart">
+            Issue alert from
+          </label>
+        </div>
+        <div class="col-sm-1">
+          {{ form.alertwindowstart(size=12, class_="form-control") }}
+          {% for error in form.alertwindowstart.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+        <div class="col-sm-1">
+          <label for="alertwindowend">
+            to
+          </label>
+        </div>
+        <div class="col-sm-1">
+          {{ form.alertwindowend(size=12, class_="form-control") }}
+          {% for error in form.alertwindowend.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          <label for="workingtimezone">
+            Operating timezone:
+          </label>
+        </div>
+        <div class="col-sm-3">
+          {{ form.workingtimezone(class_="form-control") }}
+          {% for error in form.workingtimezone.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          {{ form.submit(class_='btn btn-success') }}
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% block footer %}
+    {{ super() }}
+{% endblock %}
+
+{% endblock %}

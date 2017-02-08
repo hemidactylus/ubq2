@@ -3,13 +3,24 @@
 '''
 
 from datetime import datetime
+import pytz
 
-from config import DATE_FORMAT
+from config import (
+    DATE_FORMAT,
+)
 
-def formatTimestamp(tsint):
-    return datetime.fromtimestamp(tsint).strftime(DATE_FORMAT)
+def localDateFromTimestamp(ts,tzonedesc):
+    '''
+        using the timezone settings, extracts
+        a localised datetime from a (utc) timestamp
+    '''
+    locDate=pytz.utc.localize(datetime.utcfromtimestamp(ts),is_dst=None)
+    return locDate.astimezone(pytz.timezone(tzonedesc))
 
-def formatTimeinterval(tsint):
+def formatTimestamp(tsint, tzonedesc):
+    return localDateFromTimestamp(tsint,tzonedesc).strftime(DATE_FORMAT)
+
+def formatTimeinterval(_tsint):
     '''
         this adapts the display to whatever is the appropriate
         time window. Either:
@@ -19,6 +30,7 @@ def formatTimeinterval(tsint):
             minutes, seconds (>=60 seconds)
             seconds (otherwise)
     '''
+    tsint=int(_tsint/5)*5
     _secs=int(tsint % 60)
     _mins=int((tsint / 60) % 60)
     _hours=int((tsint / 3600) % 24)
@@ -30,7 +42,7 @@ def formatTimeinterval(tsint):
             else:
                 text = '%i\'%02i\'\'' % (_mins,_secs)
         else:
-            text = '%i:%02i\'' % (_hours,_mins)
+            text = '%ih %02i\'' % (_hours,_mins)
     else:
         if _days<10:
             text = '%id %ih' % (_days,_hours)
