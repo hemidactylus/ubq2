@@ -58,3 +58,25 @@ class IntegerString():
             # we interrupt the validation chain since usually the next ones, if any, assume numeric
             raise StopValidation(self.message)
         return
+
+class TimeExpression():
+    '''
+        Validates time-looking expressions in the form n:m with n in 0-23 and m in 0-59
+    '''
+    def __init__(self, message=None):
+        if not message:
+            message='Please insert time as "hours:minutes".'
+        self.message=message
+
+    def __call__(self,form,field):
+        parts=field.data.split(':')
+        if  len(parts)==2:
+            try:
+                _h=int(parts[0])
+                _m=int(parts[1])
+                if _h>23 or _h<0 or _m>59 or _m<0:
+                   raise StopValidation(self.message)
+            except:
+                raise StopValidation(self.message)
+        else:
+            raise StopValidation(self.message)

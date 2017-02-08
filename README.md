@@ -7,6 +7,7 @@ UBQ 2 SERVER-SIDE TECH SPECS
 - svg digits
 
 - settings: the machine to save them on db and the form
+dates: validate, check if a>b, save to db, apply
 
 - Logging system, tracking system, their plot with D3 and a smart way of archiving historical data
 - do it via status,return on all DB calls! (some already have it)

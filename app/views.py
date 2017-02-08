@@ -64,7 +64,7 @@ from app.database.staticValues import (
 )
 from app.counters.counters import signalNumberToCounter, checkCounterActivity
 from app.utils.htmlColors import htmlColors
-from app.utils.dateformats import formatTimestamp, formatTimeinterval
+from app.utils.dateformats import formatTimestamp, formatTimeinterval, stringToTimestamp
 from app.utils.parsing import integerOrNone
 
 @app.before_request
@@ -388,7 +388,22 @@ def ep_generalsettings():
     f=SettingsForm()
     if f.validate_on_submit():
         # load and validate values in form and save them to DB
-        dbSaveSetting(db,'COUNTER_OFFLINE_TIMEOUT',f.offlinetimeout.data)
+        offlinetimeout=f.offlinetimeout.data
+        alerttimeout=f.alerttimeout.data
+        workingtimezone=f.workingtimezone.data
+        if int(alerttimeout)<offlinetimeout:
+            flashMessage('critical','Settings error','alert time automatically raised to offline timeout.')
+            alerttimeout=offlinetimeout
+        try:
+            alertwindowstart=stringToTimestamp(f.alertwindowstart.data)
+            alertwindowend=stringToTimestamp(f.alertwindowend.data)
+        except:
+            alertwindowstart=None
+            alertwindowend=None
+        print(alertwindowstart,alertwindowend)
+        dbSaveSetting(db,'COUNTER_OFFLINE_TIMEOUT',offlinetimeout)
+        dbSaveSetting(db,'COUNTER_ALERT_TIMEOUT',alerttimeout)
+        dbSaveSetting(db,'WORKING_TIMEZONE',workingtimezone)
         db.commit()
         flashMessage('info','Done','settings updated')
         return redirect(url_for('ep_index'))

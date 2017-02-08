@@ -55,9 +55,6 @@
         </div>
         <div class="col-sm-1">
           {{ form.alertwindowstart(size=12, class_="form-control") }}
-          {% for error in form.alertwindowstart.errors %}
-            <span style="color: red;">{{ error }}</span>
-          {% endfor %}
         </div>
         <div class="col-sm-1">
           <label for="alertwindowend">
@@ -66,11 +63,21 @@
         </div>
         <div class="col-sm-1">
           {{ form.alertwindowend(size=12, class_="form-control") }}
-          {% for error in form.alertwindowend.errors %}
-            <span style="color: red;">{{ error }}</span>
-          {% endfor %}
         </div>
       </div>
+      {% if form.alertwindowstart.errors or form.alertwindowend.errors %}
+        <!-- warnings for time boxes -->
+        <div class="row row-grid">
+          <div class="col-sm-3 col-sm-offset-2">
+            {% for error in form.alertwindowstart.errors %}
+              <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+            {% for error in form.alertwindowend.errors %}
+              <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
       <div class="row row-grid">
         <div class="col-sm-2">
           <label for="workingtimezone">

@@ -17,6 +17,12 @@ def localDateFromTimestamp(ts,tzonedesc):
     locDate=pytz.utc.localize(datetime.utcfromtimestamp(ts),is_dst=None)
     return locDate.astimezone(pytz.timezone(tzonedesc))
 
+def stringToTimestamp(timestr):
+    '''
+        "18:44" to time(18,44,0)
+    '''
+    return datetime.strptime(timestr,'%H:%M').time()
+
 def formatTimestamp(tsint, tzonedesc):
     return localDateFromTimestamp(tsint,tzonedesc).strftime(DATE_FORMAT)
 
