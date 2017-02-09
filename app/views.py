@@ -135,10 +135,27 @@ def ep_embedcode(counterid):
         prefix=APP_COMPLETE_ADDRESS,
         url=url_for('ep_showcounter',counterid=counterid)
     )
+    embedlines=[li for li in iframeCode.split('\n') if li.strip()!='']
+    embedcode=[]
+    for li in embedlines:
+        nspaces=0
+        for c in li:
+            if c==' ':
+                nspaces+=1
+            else:
+                break
+        embedcode.append(
+            {
+                'br': True,
+                'contents': escape(li[nspaces:]),
+                'spaces': nspaces,
+            }
+        )
+    embedcode[-1]['br']=False
     return render_template(
         'embedcode.html',
         user=user,
-        embedcode=[escape(li) for li in iframeCode.split('\n') if li.strip()!=''],
+        embedcode=embedcode,
         fullname=counter.fullname,
     )
 
@@ -396,14 +413,27 @@ def ep_generalsettings():
             alerttimeout=offlinetimeout
         try:
             alertwindowstart=stringToTimestamp(f.alertwindowstart.data)
-            alertwindowend=stringToTimestamp(f.alertwindowend.data)
         except:
             alertwindowstart=None
+        try:
+            alertwindowend=stringToTimestamp(f.alertwindowend.data)
+        except:
             alertwindowend=None
-        print(alertwindowstart,alertwindowend)
+        if alertwindowstart is None:
+            flashMessage('critical','Invalid time','alert time window start was forcefully reset.')
+            alertwindowstart=time(0,1)
+        if alertwindowend is None:
+            flashMessage('critical','Invalid time','alert time window end was forcefully reset.')
+            alertwindowend=time(0,1)
+        if alertwindowstart>=alertwindowend:
+            flashMessage('warning','Warning','Alert-time setting effectively'
+                ' disable any alert. Correct if necessary.')
+        #
         dbSaveSetting(db,'COUNTER_OFFLINE_TIMEOUT',offlinetimeout)
         dbSaveSetting(db,'COUNTER_ALERT_TIMEOUT',alerttimeout)
         dbSaveSetting(db,'WORKING_TIMEZONE',workingtimezone)
+        dbSaveSetting(db,'ALERT_WINDOW_START',alertwindowstart.strftime('%H:%M'))
+        dbSaveSetting(db,'ALERT_WINDOW_END',alertwindowend.strftime('%H:%M'))
         db.commit()
         flashMessage('info','Done','settings updated')
         return redirect(url_for('ep_index'))

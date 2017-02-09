@@ -15,3 +15,14 @@ body {
     color: white;
     background-color: #0d224f;
 }
+
+.codetextarea {
+  font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+  font-size:14pt;
+  margin-left:50pt;
+  margin-right:50pt;
+  margin-top: 10pt;
+  margin-top: 10pt;
+  padding: 10pt;
+  background-color: White;
+}

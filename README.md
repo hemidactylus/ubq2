@@ -6,15 +6,10 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 - svg digits
 
-- settings: the machine to save them on db and the form
-dates: validate, check if a>b, save to db, apply
-
 - Logging system, tracking system, their plot with D3 and a smart way of archiving historical data
 - do it via status,return on all DB calls! (some already have it)
 
 - all email notification unified service is to be done
-
-- "embeddable code" page with literal and indentation
 
 - also the system service (?) that keeps the beat will have a configurable rhythm
 - it will not necessarily attach to an endpoint, perhaps: rather it's becoming a separate part of the python codebase

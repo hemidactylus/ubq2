@@ -7,12 +7,16 @@
       <h3>Embed code for {{fullname}}</h3>
       <hr>
       Copy and paste the following HTML code into your HTML page:
-      <div style="font-size:14pt; margin-left:50pt; margin-right:50pt;">
-        <code>
+      <div class="codetextarea">
           {% for li in embedcode %}
-            {{ li }}
+            {% for n in range(li.spaces) %}
+              &nbsp;
+            {% endfor %}
+            {{ li.contents }}
+            {% if li.br %}
+              <br>
+            {% endif %}
           {% endfor %}
-        </code>
       </div>
     </div>
 
