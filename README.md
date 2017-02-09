@@ -26,6 +26,44 @@ UBQ 2 SERVER-SIDE TECH SPECS
     A weekly archiving of such events...? Or a separate DB from the start (perhaps better)
 
 - For (anon) user logging, set permanent cookie in client browser, see http://stackoverflow.com/questions/11773385/setting-a-cookie-in-flask ?
+    * Options:
+        User-Agent
+        session (i.e. temp cookie)
+        explicitly persistent cookied with a uuid
+
+    * Plan:
+        set a 2-year-cookie with uuid if it does not exist,
+        else use that as an identifier.
+
+
+**********
+
+    print(request.headers.get('User-Agent'))
+
+    if 'identity' in session:
+        print('KNOWN ALREADY "%s"' % session['identity'])
+    else:
+        newID=uuid.uuid4()
+        print('SETTING THIS GUY TO "%s"' % newID)
+        session['identity']=newID
+
+    # this replaces the usual render_template!
+
+    if 'SampleCookie' in request.cookies:
+        print('THERE ALREADY')
+    resp=make_response( render_template(
+        'counterframe.html',
+        user=user,
+        counter=counterDict
+    ))
+    if 'SampleCookie' not in request.cookies:
+        print('SETTING COOKIE TO "%s"')
+        resp.set_cookie('SampleCookie','AAA',max_age=86400*365)
+    return resp
+
+
+**********
+
 
 - all email notification unified service is to be done
 

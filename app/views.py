@@ -8,6 +8,7 @@ from flask import   (
                         g,
                         abort,
                         escape,
+                        make_response,
                     )
 from flask_login import  (
     login_user,
@@ -19,6 +20,7 @@ from datetime import datetime
 from time import time
 from markupsafe import Markup
 import uuid
+import hashlib
 
 from app import app, lm
 from config import (
@@ -35,6 +37,7 @@ from config import (
     MODE_ICON_MAP,
     IFRAME_EMBED_CODE,
     APP_COMPLETE_ADDRESS,
+    USE_ANONYMOUS_COOKIES,
 )
 from .forms import (
     LoginForm,
@@ -165,19 +168,16 @@ def ep_embedcode(counterid):
 @app.route('/showcounter/<counterid>')
 def ep_showcounter(counterid):
     user=g.user
-    #
-    if 'identity' in session:
-        print('KNOWN ALREADY "%s"' % session['identity'])
-    else:
-        newID=uuid.uuid4()
-        print('SETTING THIS GUY TO "%s"' % newID)
-        session['identity']=newID
-    print(request.headers.get('User-Agent'))
-    #
     db=dbOpenDatabase(dbFullName)
     counterDict=dbGetCounter(db, counterid, keepAsDict=True)
     #
     if counterDict is not None:
+        # requestor identification is here
+        if USE_ANONYMOUS_COOKIES:
+            userId=request.cookies.get('uuid',str(uuid.uuid4()))
+        else:
+            userId=hashlib.sha1(request.headers.get('User-Agent','').encode()).hexdigest()
+        # end of req id
         counterStatus=dbGetCounterStatus(db, counterDict['id'], keepAsDict=True)
         if counterStatus is not None:
             # HERE the logic to decide what to show
@@ -206,12 +206,19 @@ def ep_showcounter(counterid):
             # default: absence of anything
             counterDict['message']=NOT_FOUND_COUNTER_MESSAGE
             counterDict['value']=NOT_FOUND_COUNTER_VALUE
-        #
-        return render_template(
-            'counterframe.html',
-            user=user,
-            counter=counterDict
+        # use of a 'response' to set the cookie if it's the case
+        response=make_response(
+            render_template(
+                'counterframe.html',
+                user=user,
+                counter=counterDict
+            )
         )
+        # cookie setting, a one-year cookie
+        if USE_ANONYMOUS_COOKIES:
+            response.set_cookie('uuid',userId,max_age=86400*365)
+        #
+        return response
     else:
         # not a recognised counter
         abort(404)
@@ -278,11 +285,9 @@ def ep_editcounter(counterid=None):
         )
         cntName = str(newCnt)
         # save, give ok, redirect
-        print('CounterID=%s (isnone=%s)' % (counterid, counterid is None))
         if counterid is not None:
             status,msg=dbUpdateCounter(db, newCnt)
         else:
-            print('dbAC')
             status,msg=dbAddCounter(db, newCnt)
         if status==0:
             db.commit()
