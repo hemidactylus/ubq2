@@ -18,6 +18,7 @@ from flask_login import  (
 from datetime import datetime
 from time import time
 from markupsafe import Markup
+import uuid
 
 from app import app, lm
 from config import (
@@ -62,7 +63,11 @@ from app.database.models import (
 from app.database.staticValues import (
     counterModeMap,
 )
-from app.counters.counters import signalNumberToCounter, checkCounterActivity
+from app.counters.counters import (
+    signalNumberToCounter,
+    checkCounterActivity,
+    checkBeat,
+)
 from app.utils.htmlColors import htmlColors
 from app.utils.dateformats import formatTimestamp, formatTimeinterval, stringToTimestamp
 from app.utils.parsing import integerOrNone
@@ -119,9 +124,7 @@ def ep_checkbeat():
         this is called from a heartbeat job and triggers offline-counter-checks
     '''
     db=dbOpenDatabase(dbFullName)
-    allCounters=dbGetCounters(db)
-    for cnt in allCounters:
-        checkCounterActivity(db, cnt.id)
+    checkBeat(db)
     db.commit()
     return '0'
 
@@ -162,6 +165,15 @@ def ep_embedcode(counterid):
 @app.route('/showcounter/<counterid>')
 def ep_showcounter(counterid):
     user=g.user
+    #
+    if 'identity' in session:
+        print('KNOWN ALREADY "%s"' % session['identity'])
+    else:
+        newID=uuid.uuid4()
+        print('SETTING THIS GUY TO "%s"' % newID)
+        session['identity']=newID
+    print(request.headers.get('User-Agent'))
+    #
     db=dbOpenDatabase(dbFullName)
     counterDict=dbGetCounter(db, counterid, keepAsDict=True)
     #
@@ -408,6 +420,7 @@ def ep_generalsettings():
         offlinetimeout=f.offlinetimeout.data
         alerttimeout=f.alerttimeout.data
         workingtimezone=f.workingtimezone.data
+        checkbeatfrequency=f.checkbeatfrequency.data
         if int(alerttimeout)<offlinetimeout:
             flashMessage('critical','Settings error','alert time automatically raised to offline timeout.')
             alerttimeout=offlinetimeout
@@ -429,6 +442,7 @@ def ep_generalsettings():
             flashMessage('warning','Warning','Alert-time setting effectively'
                 ' disable any alert. Correct if necessary.')
         #
+        dbSaveSetting(db,'CHECKBEAT_FREQUENCY',checkbeatfrequency)
         dbSaveSetting(db,'COUNTER_OFFLINE_TIMEOUT',offlinetimeout)
         dbSaveSetting(db,'COUNTER_ALERT_TIMEOUT',alerttimeout)
         dbSaveSetting(db,'WORKING_TIMEZONE',workingtimezone)
@@ -439,6 +453,7 @@ def ep_generalsettings():
         return redirect(url_for('ep_index'))
     else:
         # load settings from DB to the form
+        f.checkbeatfrequency.data=dbGetSetting(db,'CHECKBEAT_FREQUENCY')
         f.offlinetimeout.data=dbGetSetting(db,'COUNTER_OFFLINE_TIMEOUT')
         f.alerttimeout.data=dbGetSetting(db,'COUNTER_ALERT_TIMEOUT')
         f.alertwindowstart.data=dbGetSetting(db,'ALERT_WINDOW_START')

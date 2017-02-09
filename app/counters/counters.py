@@ -9,6 +9,7 @@ import pytz
 
 from app.database.dbtools import (
     dbOpenDatabase,
+    dbGetCounters,
     dbGetCounterByKey,
     dbUpdateCounterStatus,
     dbGetCounterStatus,
@@ -107,3 +108,18 @@ def isWithinAlertTime(db, timestamp):
     aStart=datetime.strptime(dbGetSetting(db,'ALERT_WINDOW_START'),'%H:%M').time()
     aEnd=datetime.strptime(dbGetSetting(db,'ALERT_WINDOW_END'),'%H:%M').time()
     return tzDate.time() >= aStart and tzDate.time() <= aEnd
+
+def checkBeat(db=None):
+    '''
+        this is called from a heartbeat job and triggers offline-counter-checks
+        If no db is passed, self-commits; else, DOES NOT COMMIT
+    '''
+    if db is None:
+        _db=dbOpenDatabase(dbFullName)
+    else:
+        _db=db
+    allCounters=dbGetCounters(_db)
+    for cnt in allCounters:
+        checkCounterActivity(_db, cnt.id)
+    if db is None:
+        _db.commit()

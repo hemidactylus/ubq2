@@ -8,11 +8,26 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 - Logging system, tracking system, their plot with D3 and a smart way of archiving historical data
 - do it via status,return on all DB calls! (some already have it)
+    A single table with various types of logged messages? Or a different table per message type?
+
+        (userID, AgentHeader, date, counter)    firstReq, lastReq, numReqs
+            for each requestor, progressively update usage stats
+
+        (date, counter)                         startTime, endTime, number
+            for each counter and number, record the permanence
+
+        (date, counter)                         stateChange(off->on, on->off), time
+        (date, counter)                         modeChange(prevmode-newmode), time
+            for each counter log the pointlike off/online changes and mode setting change
+
+        (date) anomalyCode, anomalyString
+            (more generic) email sent, malformed/wrongcode requests...
+
+    A weekly archiving of such events...? Or a separate DB from the start (perhaps better)
+
+- For (anon) user logging, set permanent cookie in client browser, see http://stackoverflow.com/questions/11773385/setting-a-cookie-in-flask ?
 
 - all email notification unified service is to be done
-
-- also the system service (?) that keeps the beat will have a configurable rhythm
-- it will not necessarily attach to an endpoint, perhaps: rather it's becoming a separate part of the python codebase
 
 # General notes
 
@@ -61,3 +76,7 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 * Sending gmail from python with an application API
     SOLVED in library added to this project
+
+* The periodic checks on all counters are triggered by the infinite-loop script trigger_checkbeat.py
+    which does not pass through any request and adapts in real-time to the configured frequency.
+    This has to become an upstart job

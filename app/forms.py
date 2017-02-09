@@ -60,6 +60,7 @@ class EditCounterForm(FlaskForm):
         self.newItem=False
 
 class SettingsForm(FlaskForm):
+    checkbeatfrequency=IntegerField('checkbeatfrequency',validators=[NumberRange(min=1)])
     offlinetimeout=IntegerField('offlinetimeout',validators=[NumberRange(min=1)])
     alerttimeout=IntegerField('alerttimeout',validators=[NumberRange(min=1)])
     alertwindowstart=StringField('alertwindowstart',validators=[TimeExpression()])

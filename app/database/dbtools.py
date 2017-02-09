@@ -138,7 +138,7 @@ def dbGetSetting(db, sKey, default=None):
     if sDict is not None:
         return sDict['value']
     else:
-        return None
+        return default
 
 def dbAddCounter(db, nCounter):
     '''

@@ -13,6 +13,24 @@
       {{ form.hidden_tag() }}
       <div class="row row-grid">
         <div class="col-sm-2">
+          <label for="checkbeatfrequency">
+            Auto self-check every
+          </label>
+        </div>
+        <div class="col-sm-2">
+          {{ form.checkbeatfrequency(size=12, class_="form-control") }}
+          {% for error in form.checkbeatfrequency.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+        <div class="col-sm-1">
+          <label for="checkbeatfrequency">
+            seconds.
+          </label>
+        </div>
+      </div>
+      <div class="row row-grid">
+        <div class="col-sm-2">
           <label for="offlinetimeout">
             Offline after inactive for
           </label>

@@ -23,4 +23,8 @@ default_settings=[
         'key'           : 'WORKING_TIMEZONE',
         'value'         : 'Europe/Rome',
     },
+    {
+        'key'           : 'CHECKBEAT_FREQUENCY',
+        'value'         : '10',
+    },
 ]
