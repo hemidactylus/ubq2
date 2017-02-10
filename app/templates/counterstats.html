@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="container">
+      <h3>{{ title }}</h3>
+      <hr>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th class="col col-sm-3">
+              Counter
+            </th>
+            <th class="col col-sm-3">
+              Number
+            </th>
+            <th class="col col-sm-3">
+              Start time
+            </th>
+            <th class="col col-sm-3">
+              End time
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for event in events %}
+          <tr>
+              <td>
+                {{ event.countername }}
+              </td>
+              <td>
+                {% if event.number != -1 %}
+                  {{ event.number }}
+                {% else %}
+                  Off
+                {% endif %}
+              </td>
+              <td>
+                {{ event.starttime }}
+              </td>
+              <td>
+                {{ event.endtime }}
+              </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}
+

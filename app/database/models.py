@@ -41,6 +41,9 @@ class CounterStatusSpan(dictableObject):
     def __str__(self):
         return '<CounterStatus[%s]:%i>' % (self.counterid,self.value)
 
+    def __lt__(self,other):
+        return self.starttime < other.starttime
+
 class Setting(dictableObject):
     namedFields=[
         'key',

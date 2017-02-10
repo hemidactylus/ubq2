@@ -22,10 +22,10 @@
               Notes
             </th>
             {% if user.is_authenticated %}
-                <th class="col col-sm-2">
+                <th class="col col-sm-1">
                   Mode
                 </th>
-                <th class="col col-sm-2">
+                <th class="col col-sm-3">
                   Actions
                 </th>
             {% else %}
@@ -62,6 +62,10 @@
                     &nbsp;&nbsp;
                     <a class="btn btn-success" href="{{ url_for('ep_embedcode', counterid=counter.id) }}">
                       <i class="fa fa-code fa-lg" aria-hidden="true"></i>
+                    </a>
+                    &nbsp;&nbsp;
+                    <a class="btn btn-primary" href="{{  url_for('ep_counterstats', counterid=counter.id) }}">
+                      <i class="fa fa-line-chart fa-lg" aria-hidden="true"></i>
                     </a>
                     &nbsp;&nbsp;
                     <a class="btn btn-danger" href="{{ url_for('ep_deletecounter', counterid=counter.id) }}">

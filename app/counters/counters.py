@@ -67,7 +67,6 @@ def signalNumberToCounter(cKey, nNumber):
         if oldStatus is not None:
             prevValue=oldStatus.value if oldStatus.online else -1
             if prevValue!=newValue:
-                print('INTERVAL OF %i (%s / %s)' % (prevValue,oldStatus.lastchange,newStatus['lastchange']))
                 logCounterStatusSpan(
                     db,
                     CounterStatusSpan(
@@ -117,7 +116,6 @@ def checkCounterActivity(db, counterid):
             newStatus['lastchange']=int(time())
             if not newOnline:
                 # log the last number up to this time: only when going-offline must the log be triggered from here
-                print('INTERVAL OF %i (%s / %s)' % (cntStatus.value,cntStatus.lastchange,newStatus['lastchange']))
                 logCounterStatusSpan(
                     db,
                     CounterStatusSpan(

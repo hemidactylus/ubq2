@@ -89,6 +89,24 @@ def dbRetrieveAllRecords(db, tableName):
     for recTuple in cur.fetchall():
         yield dict(zip(listColumns(tableName),recTuple))
 
+def dbRetrieveRecordsByKey(db, tableName, keys):
+    '''
+        keys is for instance {'id': '123', 'status': 'm'}
+    '''
+    cur=db.cursor()
+    kNames,kValues=zip(*list(keys.items()))
+    whereClause=' AND '.join('%s=?' % kn for kn in kNames)
+    selectStatement='SELECT * FROM %s WHERE %s' % (tableName,whereClause)
+    if DB_DEBUG:
+        print('[dbRetrieveRecordsByKey] %s' % selectStatement)
+        print('[dbRetrieveRecordsByKey] %s' % ','.join('%s' % iv for iv in kValues))
+    cur.execute(selectStatement, kValues)
+    docTupleList=cur.fetchall()
+    if docTupleList is not None:
+        return ( dict(zip(listColumns(tableName),docT)) for docT in docTupleList)
+    else:
+        return None
+
 def dbRetrieveRecordByKey(db, tableName, key):
     '''
         key is for instance {'id': '123'}

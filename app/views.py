@@ -71,6 +71,7 @@ from app.counters.counters import (
     checkCounterActivity,
     checkBeat,
 )
+from app.database.dblogging import getCounterStatusSpans
 from app.utils.htmlColors import htmlColors
 from app.utils.dateformats import formatTimestamp, formatTimeinterval, stringToTimestamp
 from app.utils.parsing import integerOrNone
@@ -471,6 +472,34 @@ def ep_generalsettings():
             title='General settings',
             form=f
         )
+
+@app.route('/counterstats/<counterid>')
+@app.route('/counterstats')
+@login_required
+def ep_counterstats(counterid=None):
+    user=g.user
+    # if no counterid, return an all-page
+    db=dbOpenDatabase(dbFullName)
+    counterNames={
+        cnt.id: cnt.fullname
+        for cnt in dbGetCounters(db)
+    }
+    workingTimeZone=dbGetSetting(db,'WORKING_TIMEZONE')
+    eventList=[
+        {
+            'countername': counterNames.get(ev.counterid,'(unknown counter "%s")' % ev.counterid),
+            'number': ev.value,
+            'starttime': formatTimestamp(ev.starttime,workingTimeZone),
+            'endtime': formatTimestamp(ev.endtime,workingTimeZone),
+        }
+        for ev in sorted(getCounterStatusSpans(db,counterid))
+    ]
+    return render_template(
+        'counterstats.html',
+        user=user,
+        title='Number stats for "%s"' % counterNames.get(counterid,counterid) if counterid else "Number stats",
+        events=eventList,
+    )
 
 @app.route('/usersettings', methods=['GET','POST'])
 @login_required
