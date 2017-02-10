@@ -18,7 +18,9 @@ def listColumns(tableName):
         reads the table structure and returns an *ordered*
         list of its fields
     '''
-    colList=[dbTablesDesc[tableName]['primary_key'][0]]
+    colList=[]
+    if 'primary_key' in dbTablesDesc[tableName]:
+        colList+=[dbTablesDesc[tableName]['primary_key'][0]]
     colList+=map(itemgetter(0),dbTablesDesc[tableName]['columns'])
     return colList
 
@@ -60,7 +62,9 @@ def dbCreateTable(db,tableName,tableDesc):
         tableName is a string
         tableDesc is a nonempty array of pairs (name,type)
     '''
-    fieldLines=['%s %s PRIMARY KEY' % (tableDesc['primary_key'])]
+    fieldLines=[]
+    if 'primary_key' in tableDesc:
+        fieldLines+=['%s %s PRIMARY KEY' % (tableDesc['primary_key'])]
     fieldLines+=['%s %s' % fld for fld in tableDesc['columns']]
     createCommand='CREATE TABLE %s (\n\t%s\n);' % (
         tableName,

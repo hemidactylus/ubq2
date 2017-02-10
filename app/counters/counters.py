@@ -16,6 +16,12 @@ from app.database.dbtools import (
     dbAddCounterStatus,
     dbGetSetting,
 )
+from app.database.models import (
+    CounterStatusSpan,
+)
+from app.database.dblogging import (
+    logCounterStatusSpan,
+)
 from config import (
     dbFullName,
 )
@@ -57,6 +63,21 @@ def signalNumberToCounter(cKey, nNumber):
             # really new number
             newStatus['value']=newValue
             newStatus['lastchange']=newStatus['lastupdate']
+        # logging
+        if oldStatus is not None:
+            prevValue=oldStatus.value if oldStatus.online else -1
+            if prevValue!=newValue:
+                print('INTERVAL OF %i (%s / %s)' % (prevValue,oldStatus.lastchange,newStatus['lastchange']))
+                logCounterStatusSpan(
+                    db,
+                    CounterStatusSpan(
+                        counterid=tCounter.id,
+                        value=prevValue,
+                        starttime=oldStatus.lastchange,
+                        endtime=newStatus['lastchange'],
+                    )
+                )
+        #
         if oldStatus is None:
             # right now, at the update, we assume counter online and no notify needed
             newStatus['online']=1
@@ -77,6 +98,9 @@ def checkCounterActivity(db, counterid):
         depending on the last activity time and the current time,
         possible changes online <--> offline are handled here,
         with notifications to admin whenever deemed necessary
+
+        DOES NOT COMMIT BY ITSELF
+
     '''
     # if we update counter status - we assume it exists at this point,
     # otherwise we silently do nothing
@@ -89,6 +113,20 @@ def checkCounterActivity(db, counterid):
             # act upon such a change
             newStatus['online']=int(newOnline)
             newStatus['tonotify']=int(not(newOnline))
+            # additionally mark the time of going-offline
+            newStatus['lastchange']=int(time())
+            if not newOnline:
+                # log the last number up to this time: only when going-offline must the log be triggered from here
+                print('INTERVAL OF %i (%s / %s)' % (cntStatus.value,cntStatus.lastchange,newStatus['lastchange']))
+                logCounterStatusSpan(
+                    db,
+                    CounterStatusSpan(
+                        counterid=cntStatus.id,
+                        value=cntStatus.value,
+                        starttime=cntStatus.lastchange,
+                        endtime=newStatus['lastchange'],
+                    )
+                )
         if not newOnline and elapsed>int(dbGetSetting(db,'COUNTER_ALERT_TIMEOUT')) and cntStatus.tonotify:
             # it has been offline for more than the alert-time:
             #   if in the time window, send notification out

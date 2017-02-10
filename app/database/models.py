@@ -24,6 +24,23 @@ class dictableObject():
             del _kwargs[df]
         return _kwargs
 
+class CounterStatusSpan(dictableObject):
+    namedFields=[
+        'counterid',
+        'value',
+        'starttime',
+        'endtime',
+    ]
+
+    def __init__(self,**kwargs):
+        _kwargs=self.consumeKWargs(**kwargs)
+        # no additional conversions here
+        if _kwargs:
+            raise ValueError('Unknown argument(s): %s' % ', '.join(_kwargs.keys()))
+
+    def __str__(self):
+        return '<CounterStatus[%s]:%i>' % (self.counterid,self.value)
+
 class Setting(dictableObject):
     namedFields=[
         'key',

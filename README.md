@@ -4,19 +4,22 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 # Doing and to-do
 
+- Slowness in editing counters: to investigate. After 'save counter' there's sometimes a 1-2 sec delay
+    before the ep_counters endpoint is queried. Seemingly out-of-my-code, perhaps DB related?
+
 - svg digits
 
 - Logging system, tracking system, their plot with D3 and a smart way of archiving historical data
 - do it via status,return on all DB calls! (some already have it)
     A single table with various types of logged messages? Or a different table per message type?
 
-        (userID, AgentHeader, date, counter)    firstReq, lastReq, numReqs
+        (userID, day, counter)    firstReq, lastReq, numReqs
             for each requestor, progressively update usage stats
 
-        (date, counter)                         startTime, endTime, number
+        (day, counter)                         startTime, endTime, number
             for each counter and number, record the permanence
+            Being offline counts as a number (e.g. -1 or so) and is a separate status
 
-        (date, counter)                         stateChange(off->on, on->off), time
         (date, counter)                         modeChange(prevmode-newmode), time
             for each counter log the pointlike off/online changes and mode setting change
 
@@ -25,41 +28,14 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
     A weekly archiving of such events...? Or a separate DB from the start (perhaps better)
 
-- For (anon) user logging, set permanent cookie in client browser, see http://stackoverflow.com/questions/11773385/setting-a-cookie-in-flask ?
-    * Options:
-        User-Agent
-        session (i.e. temp cookie)
-        explicitly persistent cookied with a uuid
+Counter States Spans:
+    each counter is represented by (n,start,stop), n= the number or -1 (offline)
+    In signalnumbertocounter and checkcounteractivity this must happen:
+        if change of number, use the date of last-update as start and record the
+        just elapsed (n,start,stop)
 
-    * Plan:
-        set a 2-year-cookie with uuid if it does not exist,
-        else use that as an identifier.
-
-
-**********
-
-    print(request.headers.get('User-Agent'))
-
-    if 'identity' in session:
-        print('KNOWN ALREADY "%s"' % session['identity'])
-    else:
-        newID=uuid.uuid4()
-        print('SETTING THIS GUY TO "%s"' % newID)
-        session['identity']=newID
-
-    # this replaces the usual render_template!
-
-    if 'SampleCookie' in request.cookies:
-        print('THERE ALREADY')
-    resp=make_response( render_template(
-        'counterframe.html',
-        user=user,
-        counter=counterDict
-    ))
-    if 'SampleCookie' not in request.cookies:
-        print('SETTING COOKIE TO "%s"')
-        resp.set_cookie('SampleCookie','AAA',max_age=86400*365)
-    return resp
+        => Table 'stats_numbers'
+            day, counter, number, starttime, endtime
 
 
 **********
@@ -118,3 +94,5 @@ UBQ 2 SERVER-SIDE TECH SPECS
 * The periodic checks on all counters are triggered by the infinite-loop script trigger_checkbeat.py
     which does not pass through any request and adapts in real-time to the configured frequency.
     This has to become an upstart job
+
+* Usage stats through a cookie- and useragent-based anon ID.

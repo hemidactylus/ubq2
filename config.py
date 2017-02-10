@@ -47,7 +47,7 @@ MODE_ICON_MAP={
 DATE_FORMAT='%b %d, %H:%M'
 
 # Usage tracking level: True uses cookies, False relies on User-Agent
-USE_ANONYMOUS_COOKIES=False
+USE_ANONYMOUS_COOKIES=True
 
 # DERIVED VARIABLES - do not edit below this line (theoretically)
 dbFullName=os.path.join(DB_DIRECTORY,DB_NAME)

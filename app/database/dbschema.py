@@ -41,4 +41,12 @@ dbTablesDesc={
             ('value', 'TEXT'),          # this setting's value - always a string
         ],
     },
+    'stat_counterstatusspans': {
+        'columns': [
+            ('counterid',   'TEXT'),    # counter ID
+            ('value',       'INTEGER'), # counter value of this timespan
+            ('starttime',   'INTEGER'), # datetime(as int) of beginning
+            ('endtime',     'INTEGER'), # datetime(as int) of end
+        ]
+    },
 }
