@@ -103,6 +103,7 @@ def ep_index():
                             user=user,
                            )
 
+@app.route('/update1')
 @app.route('/update1.php')
 def ep_update():
     '''

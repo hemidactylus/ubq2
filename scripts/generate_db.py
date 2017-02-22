@@ -3,6 +3,7 @@
 '''
 
 import os
+import stat
 
 import env
 from app.database.dbtools import (
@@ -18,6 +19,13 @@ from app.database.models import User, Counter, Setting
 from app.database.default_db_values import default_settings
 from app.utils.interactive import ask_for_confirmation, logDo
 from test_db_values import test_users, test_counters
+
+def setRWAttributeForAll(filename):
+    '''
+        Set rw-rw-rw attribute to database file
+    '''
+    attrConstant=stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+    os.chmod(filename, attrConstant )
 
 if __name__=='__main__':
     #
@@ -43,5 +51,6 @@ if __name__=='__main__':
 
     logDo(lambda: db.commit(), '  * Committing')
     logDo(lambda: db.close(), '  * Closing')
+    logDo(lambda: setRWAttributeForAll(dbFullName), '  * Setting DB file attributes')
 
     print('Finished.')

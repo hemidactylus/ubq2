@@ -4,6 +4,10 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 # Doing and to-do
 
+- ADAPTING TO DEPLOY
+    * 'update1.php' better becomes 'update1', must alter the devices!
+    * an upstart job for the checkbeat
+
 - Slowness in editing counters: to investigate. After 'save counter' there's sometimes a 1-2 sec delay
     before the ep_counters endpoint is queried. Seemingly out-of-my-code, perhaps DB related?
 
