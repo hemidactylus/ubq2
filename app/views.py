@@ -9,6 +9,7 @@ from flask import   (
                         abort,
                         escape,
                         make_response,
+                        jsonify,
                     )
 from flask_login import  (
     login_user,
@@ -73,7 +74,12 @@ from app.counters.counters import (
 )
 from app.database.dblogging import getCounterStatusSpans
 from app.utils.htmlColors import htmlColors
-from app.utils.dateformats import formatTimestamp, formatTimeinterval, stringToTimestamp
+from app.utils.dateformats import (
+    formatTimestamp,
+    formatTimeinterval,
+    stringToTimestamp,
+    pastTimestamp,
+)
 from app.utils.parsing import integerOrNone
 
 @app.before_request
@@ -474,32 +480,70 @@ def ep_generalsettings():
             form=f
         )
 
-@app.route('/counterstats/<counterid>')
-@app.route('/counterstats')
-@login_required
-def ep_counterstats(counterid=None):
-    user=g.user
-    # if no counterid, return an all-page
+@app.route('/counterstats_timeplot_data/<counterid>')
+def ep_counterstats_data(counterid):
     db=dbOpenDatabase(dbFullName)
-    counterNames={
-        cnt.id: cnt.fullname
-        for cnt in dbGetCounters(db)
-    }
     workingTimeZone=dbGetSetting(db,'WORKING_TIMEZONE')
+    counterName=dbGetCounter(db,counterid).fullname
+    # retrieve all events for the required counter
     eventList=[
         {
-            'countername': counterNames.get(ev.counterid,'(unknown counter "%s")' % ev.counterid),
-            'number': ev.value,
-            'starttime': formatTimestamp(ev.starttime,workingTimeZone),
-            'endtime': formatTimestamp(ev.endtime,workingTimeZone),
+            'value': ev.value,
+            'start': 1000*ev.starttime,
+            'end': 1000*ev.endtime,
         }
-        for ev in sorted(getCounterStatusSpans(db,counterid))
+        for ev in sorted(getCounterStatusSpans(
+            db,
+            counterid, 
+            startTime=1487837491,
+            endTime=1487843366,
+        ))
+    ]
+    fullStructure={
+        'xrange': {
+            'min': min(ev['start'] for ev in eventList)-1000*30 if eventList else 0,
+            'max': max(ev['end'] for ev in eventList)+1000*30 if eventList else 0,
+        },
+        'values': eventList,
+        'countername': counterName,
+    }
+    return jsonify(**fullStructure)
+
+@app.route('/counterstats_timeplot/<counterid>')
+@login_required
+def ep_counterstats_timeplot(counterid):
+    '''
+        The page with the counter-specific time plot
+    '''
+    user=g.user
+    return render_template(
+        'counterstat_timeplot.html',
+        user=user,
+        title='Time plot for counter "%s"' % counterid,
+        counterid=counterid,
+    )
+
+@app.route('/counterstats')
+@login_required
+def ep_counterstats():
+    '''
+        simply prepare a list of counter IDs / name to choose from,
+        to access the number-series plot
+    '''
+    user=g.user
+    db=dbOpenDatabase(dbFullName)
+    counters=[
+        {
+            'id': cnt.id,
+            'name': cnt.fullname,
+        }
+        for cnt in sorted(dbGetCounters(db))
     ]
     return render_template(
         'counterstats.html',
         user=user,
-        title='Number stats for "%s"' % counterNames.get(counterid,counterid) if counterid else "Number stats",
-        events=eventList,
+        title='Number stats main menu',
+        counters=counters,
     )
 
 @app.route('/usersettings', methods=['GET','POST'])

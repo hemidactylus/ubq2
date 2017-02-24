@@ -2,12 +2,23 @@
     dateformats.py : utilities to deal with formatting timestamps and timeintervals
 '''
 
-from datetime import datetime
+from datetime import datetime, timedelta
+from time import mktime
 import pytz
 
 from config import (
     DATE_FORMAT,
 )
+
+def pastTimestamp(nDays, baseDate=None):
+    '''
+        Returns the integer timestamp (in seconds)
+        of the time nDays days before the provided baseDate (=now by default).
+        Used for log-event queries
+    '''
+    if not baseDate:
+        baseDate=datetime.now()
+    return mktime((baseDate-timedelta(days=nDays)).timetuple())
 
 def localDateFromTimestamp(ts,tzonedesc):
     '''

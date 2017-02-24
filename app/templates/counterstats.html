@@ -9,38 +9,26 @@
       <table class="table table-hover">
         <thead>
           <tr>
-            <th class="col col-sm-3">
-              Counter
+            <th class="col col-sm-2">
+              ID
             </th>
-            <th class="col col-sm-3">
-              Number
-            </th>
-            <th class="col col-sm-3">
-              Start time
-            </th>
-            <th class="col col-sm-3">
-              End time
+            <th class="col col-sm-4">
+              Counter name
             </th>
           </tr>
         </thead>
         <tbody>
-        {% for event in events %}
+        {% for counter in counters %}
           <tr>
               <td>
-                {{ event.countername }}
+                <a href="{{url_for('ep_counterstats_timeplot', counterid=counter.id)}}">
+                  {{ counter.id }}
+                </a>
               </td>
               <td>
-                {% if event.number != -1 %}
-                  {{ event.number }}
-                {% else %}
-                  Off
-                {% endif %}
-              </td>
-              <td>
-                {{ event.starttime }}
-              </td>
-              <td>
-                {{ event.endtime }}
+                <a href="{{url_for('ep_counterstats_timeplot', counterid=counter.id)}}">
+                  {{ counter.name }}
+                </a>
               </td>
           </tr>
         {% endfor %}

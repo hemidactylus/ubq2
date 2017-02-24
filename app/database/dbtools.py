@@ -89,13 +89,15 @@ def dbRetrieveAllRecords(db, tableName):
     for recTuple in cur.fetchall():
         yield dict(zip(listColumns(tableName),recTuple))
 
-def dbRetrieveRecordsByKey(db, tableName, keys):
+def dbRetrieveRecordsByKey(db, tableName, keys, whereClauses=[]):
     '''
         keys is for instance {'id': '123', 'status': 'm'}
     '''
     cur=db.cursor()
     kNames,kValues=zip(*list(keys.items()))
-    whereClause=' AND '.join('%s=?' % kn for kn in kNames)
+    fullWhereClauses=['%s=?' % kn for kn in kNames] + whereClauses
+    whereClause=' AND '.join(fullWhereClauses)
+    print(whereClause)
     selectStatement='SELECT * FROM %s WHERE %s' % (tableName,whereClause)
     if DB_DEBUG:
         print('[dbRetrieveRecordsByKey] %s' % selectStatement)

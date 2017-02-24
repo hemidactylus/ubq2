@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="container">
+      <h3>{{ title }}</h3>
+      <hr>
+      <!-- Here the plot is built -->
+        <svg class="chart"></svg>
+        <script src="/static/ubq/d3/d3.min.js" charset="utf-8"></script>
+        <script>
+          var counterid="{{counterid}}";
+        </script>
+        <script>
+            var formatTime=function(tstamp){
+              var date = new Date(tstamp);
+              // Hours part from the timestamp
+              var hours = date.getHours();
+              // Minutes part from the timestamp
+              var minutes = "0" + date.getMinutes();
+              // Seconds part from the timestamp
+              var seconds = "0" + date.getSeconds();
+              // Will return time in 10:30:23 format
+              return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+            }
+
+            var valueLabel=function(d){return d.value<0?"(off)":d.value;}
+
+            var margin = {top: 20, right: 30, bottom: 40, left: 50},
+                width = 600 - margin.left - margin.right,
+                height = 500 - margin.top - margin.bottom,
+                unitheight = height / 100.0;
+    
+            var y = d3.scaleLinear()
+                    .range([height,0])
+                    .domain([0,100]);
+            var x = d3.scaleTime()
+                    .range([0, width]);
+            var xAxis = d3.axisBottom()
+                .scale(x)
+            var yAxis = d3.axisLeft()
+                .scale(y);
+
+            var chart = d3.select(".chart")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            d3.json("/counterstats_timeplot_data/"+counterid, function(error,data){
+                console.log(data);
+                x.domain([data.xrange.min,data.xrange.max]);
+                var rectas = chart.selectAll("g")
+                    .data(data.values)
+                    .enter()
+                    .append("g")
+                    .attr("transform", function(d) {return "translate("+x(d.start)
+                      +","+(d.value<0?y(100):y(d.value))+")"; } );
+                rectas.append("rect")
+                    .attr("class",function(d){return d.value<0?"nonumberrect":"numberrect";})
+                    .attr("width",function(d) {return x(d.end)-x(d.start);})
+                    .attr("height",function(d){return d.value<0?(100*unitheight):unitheight;})
+                    .attr("fill-opacity",function(d){return d.value<0?0.3:1.0;})
+                    .append("title")
+                      .text(function(d) { return valueLabel(d)+" => "+formatTime(d.start)+" to "+formatTime(d.end); });
+                rectas.append("text")
+                    .attr("class",function(d){return d.value<0?"nonumberlabel":"numberlabel";})
+                    .attr("x", function(d){return 0.5*(x(d.end)-x(d.start));})
+                    .attr("y", 0)
+                    .attr("dy",function(d){return d.value<0?"22.0pt":"-0.8pt";})
+                    .style("text-anchor", "middle")
+                    .text(valueLabel);
+                chart.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis)
+                    .append("text")
+                        .attr("class","axislabel")
+                        .attr("x", width)
+                        .attr("dx", "-10px")
+                        .attr("dy", "34")
+                        .style("text-anchor", "end")
+                        .text("Time");
+                chart.append("g")
+                    .attr("class", "y axis")
+                    .call(yAxis)
+                    .append("text")
+                        .attr("class","axislabel")
+                        .attr("transform", "rotate(-90)")
+                        .attr("y", -20)
+                        .attr("dy", "-0.71em")
+                        .style("text-anchor", "end")
+                        .text("Number");
+            });            
+        </script>
+      <!-- End of the plot -->
+    </div>
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}
+

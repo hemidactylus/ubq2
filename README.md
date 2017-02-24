@@ -13,6 +13,8 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 - svg digits
 
+*******
+
 - Logging system, tracking system, their plot with D3 and a smart way of archiving historical data
 - do it via status,return on all DB calls! (some already have it)
     A single table with various types of logged messages? Or a different table per message type?
@@ -32,6 +34,14 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
     A weekly archiving of such events...? Or a separate DB from the start (perhaps better)
 
+
+Associated endpoints & flow:
+    a number-stat page where one selects between:
+        type of stat (time-number plot, duration frequency, init/end time distrib)
+        target counter (choose among the public ones)
+        (some subthings such as day or so)
+    and, below, a plot.
+
 Counter States Spans:
     each counter is represented by (n,start,stop), n= the number or -1 (offline)
     In signalnumbertocounter and checkcounteractivity this must happen:
@@ -41,6 +51,14 @@ Counter States Spans:
         => Table 'stats_numbers'
             day, counter, number, starttime, endtime
 
+    For the corresponding plot, this is a horiz-lines segmented plot.
+    And it is a pilot test.
+
+    First goal: for a given counter,
+        a standard timespan,                    TO FIX (so far it's fixed for testing)
+        an endpoint which marshals the json,    DONE
+        a frame with the plot,                  todo
+        no auth yet                             todo
 
 **********
 

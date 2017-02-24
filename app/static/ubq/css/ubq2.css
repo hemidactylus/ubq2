@@ -26,3 +26,35 @@ body {
   padding: 10pt;
   background-color: White;
 }
+
+.numberrect {
+    fill: #0d224f;
+}
+
+.nonumberrect {
+    fill: #ff0000;
+}
+
+.numberlabel {
+    fill: #0d224f;
+    font: 8pt sans-serif;
+}
+
+.nonumberlabel {
+    fill: #ff0000;
+    font: 8pt sans-serif;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #0d224f;
+    shape-rendering: crispEdges;
+}
+.axis text{
+    fill: #0d224f;
+}
+.axis .axislabel {
+    fill: #0d224f;
+    font: 14pt sans-serif;
+}

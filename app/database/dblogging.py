@@ -15,13 +15,30 @@ def logCounterStatusSpan(db, csSpan):
     '''
     dbAddRecordToTable(db,'stat_counterstatusspans', csSpan.asDict())
 
-def getCounterStatusSpans(db, counterid=None):
+def getCounterStatusSpans(db, counterid=None, startTime=None, endTime=None):
     '''
         retrieves counter-status events for a given counterID or all of them
     '''
+    whereClauses=[]
+    if startTime:
+        whereClauses+=['starttime > %i' % startTime]
+    if endTime:
+        whereClauses+=['endtime < %i' % endTime]
+    #
     if counterid:
         return (CounterStatusSpan(**css) 
-            for css in dbRetrieveRecordsByKey(db, 'stat_counterstatusspans', {'counterid': counterid}))
+            for css in dbRetrieveRecordsByKey(
+                db,
+                'stat_counterstatusspans',
+                {'counterid': counterid},
+                whereClauses=whereClauses,
+            )
+        )
     else:
         return (CounterStatusSpan(**css)
-            for css in dbRetrieveAllRecords(db, 'stat_counterstatusspans'))
+            for css in dbRetrieveAllRecords(
+                db,
+                'stat_counterstatusspans',
+                whereClauses=whereClauses,
+            )
+        )
