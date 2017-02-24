@@ -14,22 +14,22 @@
         </script>
         <script>
             var formatTime=function(tstamp){
-              var date = new Date(tstamp);
-              // Hours part from the timestamp
-              var hours = date.getHours();
-              // Minutes part from the timestamp
-              var minutes = "0" + date.getMinutes();
-              // Seconds part from the timestamp
-              var seconds = "0" + date.getSeconds();
-              // Will return time in 10:30:23 format
-              return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+                var date = new Date(tstamp);
+                // Hours part from the timestamp
+                var hours = date.getHours();
+                // Minutes part from the timestamp
+                var minutes = "0" + date.getMinutes();
+                // Seconds part from the timestamp
+                var seconds = "0" + date.getSeconds();
+                // Will return time in 10:30:23 format
+                return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
             }
 
             var valueLabel=function(d){return d.value<0?"(off)":d.value;}
 
             var margin = {top: 20, right: 30, bottom: 40, left: 50},
-                width = 600 - margin.left - margin.right,
-                height = 500 - margin.top - margin.bottom,
+                width = 1000 - margin.left - margin.right,
+                height = 380 - margin.top - margin.bottom,
                 unitheight = height / 100.0;
     
             var y = d3.scaleLinear()
@@ -46,11 +46,25 @@
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
+                // see mouse-events below
+                .attr("pointer-events", "all")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var clip = chart.append("defs").append("svg:clipPath")
+                .attr("id", "clip")
+                .append("svg:rect")
+                .attr("id", "clip-rect")
+                .attr("x", "0")
+                .attr("y", "0")
+                .attr("width", width)
+                .attr("height", height);
+            var chartBody = chart.append("g")
+                .attr("id","chartBody")
+                .attr("clip-path", "url(#clip)");
+
             d3.json("/counterstats_timeplot_data/"+counterid, function(error,data){
-                console.log(data);
                 x.domain([data.xrange.min,data.xrange.max]);
-                var rectas = chart.selectAll("g")
+                var rectas = chartBody.selectAll("g")
                     .data(data.values)
                     .enter()
                     .append("g")
@@ -60,9 +74,7 @@
                     .attr("class",function(d){return d.value<0?"nonumberrect":"numberrect";})
                     .attr("width",function(d) {return x(d.end)-x(d.start);})
                     .attr("height",function(d){return d.value<0?(100*unitheight):unitheight;})
-                    .attr("fill-opacity",function(d){return d.value<0?0.3:1.0;})
-                    .append("title")
-                      .text(function(d) { return valueLabel(d)+" => "+formatTime(d.start)+" to "+formatTime(d.end); });
+                    .attr("fill-opacity",function(d){return d.value<0?0.3:1.0;});
                 rectas.append("text")
                     .attr("class",function(d){return d.value<0?"nonumberlabel":"numberlabel";})
                     .attr("x", function(d){return 0.5*(x(d.end)-x(d.start));})
@@ -70,6 +82,8 @@
                     .attr("dy",function(d){return d.value<0?"22.0pt":"-0.8pt";})
                     .style("text-anchor", "middle")
                     .text(valueLabel);
+                rectas.append("title")
+                    .text(function(d) { return valueLabel(d)+" => "+formatTime(d.start)+" to "+formatTime(d.end); });
                 chart.append("g")
                     .attr("class", "x axis")
                     .attr("transform", "translate(0," + height + ")")

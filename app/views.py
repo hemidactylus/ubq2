@@ -486,6 +486,8 @@ def ep_counterstats_data(counterid):
     workingTimeZone=dbGetSetting(db,'WORKING_TIMEZONE')
     counterName=dbGetCounter(db,counterid).fullname
     # retrieve all events for the required counter
+    startTime=1487836491
+    endTime  =1487838166
     eventList=[
         {
             'value': ev.value,
@@ -495,14 +497,14 @@ def ep_counterstats_data(counterid):
         for ev in sorted(getCounterStatusSpans(
             db,
             counterid, 
-            startTime=1487837491,
-            endTime=1487843366,
+            startTime=startTime,
+            endTime=endTime,
         ))
     ]
     fullStructure={
         'xrange': {
-            'min': min(ev['start'] for ev in eventList)-1000*30 if eventList else 0,
-            'max': max(ev['end'] for ev in eventList)+1000*30 if eventList else 0,
+            'min': startTime*1000,
+            'max': endTime*1000,
         },
         'values': eventList,
         'countername': counterName,

@@ -21,9 +21,9 @@ def getCounterStatusSpans(db, counterid=None, startTime=None, endTime=None):
     '''
     whereClauses=[]
     if startTime:
-        whereClauses+=['starttime > %i' % startTime]
+        whereClauses+=['endtime > %i' % startTime]
     if endTime:
-        whereClauses+=['endtime < %i' % endTime]
+        whereClauses+=['starttime < %i' % endTime]
     #
     if counterid:
         return (CounterStatusSpan(**css) 
