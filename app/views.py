@@ -481,6 +481,7 @@ def ep_generalsettings():
         )
 
 @app.route('/counterstats_timeplot_data/<counterid>')
+@login_required
 def ep_counterstats_data(counterid):
     db=dbOpenDatabase(dbFullName)
     workingTimeZone=dbGetSetting(db,'WORKING_TIMEZONE')

@@ -34,6 +34,7 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
     A weekly archiving of such events...? Or a separate DB from the start (perhaps better)
 
+Requests from within the code in the page automatically inherit auth data (session cookies)
 
 Associated endpoints & flow:
     a number-stat page where one selects between:
@@ -58,7 +59,7 @@ Counter States Spans:
         a standard timespan,                    TO FIX (so far it's fixed for testing)
         an endpoint which marshals the json,    DONE
         a frame with the plot,                  todo
-        no auth yet                             todo
+
 
 **********
 

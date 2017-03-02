@@ -97,7 +97,6 @@ def dbRetrieveRecordsByKey(db, tableName, keys, whereClauses=[]):
     kNames,kValues=zip(*list(keys.items()))
     fullWhereClauses=['%s=?' % kn for kn in kNames] + whereClauses
     whereClause=' AND '.join(fullWhereClauses)
-    print(whereClause)
     selectStatement='SELECT * FROM %s WHERE %s' % (tableName,whereClause)
     if DB_DEBUG:
         print('[dbRetrieveRecordsByKey] %s' % selectStatement)

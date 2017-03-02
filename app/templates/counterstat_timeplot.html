@@ -69,7 +69,7 @@
                     .enter()
                     .append("g")
                     .attr("transform", function(d) {return "translate("+x(d.start)
-                      +","+(d.value<0?y(100):y(d.value))+")"; } );
+                      +","+(d.value<0?y(100):y(d.value+1))+")"; } );
                 rectas.append("rect")
                     .attr("class",function(d){return d.value<0?"nonumberrect":"numberrect";})
                     .attr("width",function(d) {return x(d.end)-x(d.start);})
@@ -79,7 +79,7 @@
                     .attr("class",function(d){return d.value<0?"nonumberlabel":"numberlabel";})
                     .attr("x", function(d){return 0.5*(x(d.end)-x(d.start));})
                     .attr("y", 0)
-                    .attr("dy",function(d){return d.value<0?"22.0pt":"-0.8pt";})
+                    .attr("dy",function(d){return d.value<0?"22.0pt":(d.value<90?"-0.8pt":"9.2pt");})
                     .style("text-anchor", "middle")
                     .text(valueLabel);
                 rectas.append("title")
