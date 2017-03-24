@@ -5,7 +5,7 @@
 
     <div class="container">
       <h3>{{ title }}</h3>
-      <p id="menu"><b>Day (total: <span id="ndays"></span>)</b><br>Choose a day<select></select></p>
+      <p id="menu"><b>Choose the day (total: <span id="ndays"></span>)</b><select></select></p>
       <hr>
       <!-- Here the plot is built -->
         <svg class="chart"></svg>
@@ -63,16 +63,35 @@
                 .attr("id","chartBody")
                 .attr("clip-path", "url(#clip)");
 
+            function formatDate(jTimestamp){
+                var a = new Date(jTimestamp);
+                var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                var year = a.getFullYear();
+                var month = months[a.getMonth()];
+                var date = a.getDate();
+                var time = month + ' ' + date + ', ' + year;
+                return time;
+            }
+
             var redraw=function(){
+                PLOT_GUTTER=1000*120;
                 var jday=menu.property("value");
                 d3.json("/DATA_counterstats_timeplot_data/"+counterid+"/"+jday, function(error,data){
-                    alert("Doing <"+"/DATA_counterstats_timeplot_data/"+counterid+"/"+jday+">");
                     // restrict the range to the time of interest (depends on data!)
-                    TO DO
+                    var time_min=d3.min(data.values.filter(
+                        function(v){return v.value>=0 && v.value!=23;}
+                    ),function(v){return v.start;});
+                    var time_max=d3.max(data.values.filter(
+                        function(v){return v.value>=0 && v.value!=23;}
+                    ),function(v){return v.end;});
+                    time_min=d3.max([time_min,data.xrange.min]);
+                    time_max=d3.min([time_max,data.xrange.max]);
                     //
-                    x.domain([data.xrange.min,data.xrange.max]);
+                    // x.domain([data.xrange.min,data.xrange.max]);
+                    x.domain([time_min-PLOT_GUTTER,time_max+PLOT_GUTTER]);
                     var rectasel = chartBody.selectAll("g")
                         .data(data.values);
+                    rectasel.remove();
                     rectasel.exit().remove();
                     rectas=rectasel
                         .enter()
@@ -93,6 +112,11 @@
                         .text(valueLabel);
                     rectas.append("title")
                         .text(function(d) { return valueLabel(d)+" => "+formatTime(d.start)+" to "+formatTime(d.end); });
+                    //
+                    d3.select("axislabel").remove();
+                    d3.select(".x.axis").remove();
+                    d3.select(".y.axis").remove();
+                    //
                     chart.append("g")
                         .attr("class", "x axis")
                         .attr("transform", "translate(0," + height + ")")
@@ -125,7 +149,8 @@
                 menu.selectAll("option")
                     .data(data.days)
                     .enter().append("option")
-                    .text(function(d) { return d; });
+                    .property("value",function(d){return d;})
+                    .text(function(d) { return formatDate(d); });
                 menu.property("value",data.days[data.days.length-1]);
                 ndays.text(data.n);
                 redraw();
