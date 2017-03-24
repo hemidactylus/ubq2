@@ -5,6 +5,7 @@
 
     <div class="container">
       <h3>{{ title }}</h3>
+      <p id="menu"><b>Day (total: <span id="ndays"></span>)</b><br>Choose a day<select></select></p>
       <hr>
       <!-- Here the plot is built -->
         <svg class="chart"></svg>
@@ -62,50 +63,73 @@
                 .attr("id","chartBody")
                 .attr("clip-path", "url(#clip)");
 
-            d3.json("/counterstats_timeplot_data/"+counterid, function(error,data){
-                x.domain([data.xrange.min,data.xrange.max]);
-                var rectas = chartBody.selectAll("g")
-                    .data(data.values)
-                    .enter()
-                    .append("g")
-                    .attr("transform", function(d) {return "translate("+x(d.start)
-                      +","+(d.value<0?y(100):y(d.value+1))+")"; } );
-                rectas.append("rect")
-                    .attr("class",function(d){return d.value<0?"nonumberrect":"numberrect";})
-                    .attr("width",function(d) {return x(d.end)-x(d.start);})
-                    .attr("height",function(d){return d.value<0?(100*unitheight):unitheight;})
-                    .attr("fill-opacity",function(d){return d.value<0?0.3:1.0;});
-                rectas.append("text")
-                    .attr("class",function(d){return d.value<0?"nonumberlabel":"numberlabel";})
-                    .attr("x", function(d){return 0.5*(x(d.end)-x(d.start));})
-                    .attr("y", 0)
-                    .attr("dy",function(d){return d.value<0?"22.0pt":(d.value<90?"-0.8pt":"9.2pt");})
-                    .style("text-anchor", "middle")
-                    .text(valueLabel);
-                rectas.append("title")
-                    .text(function(d) { return valueLabel(d)+" => "+formatTime(d.start)+" to "+formatTime(d.end); });
-                chart.append("g")
-                    .attr("class", "x axis")
-                    .attr("transform", "translate(0," + height + ")")
-                    .call(xAxis)
-                    .append("text")
-                        .attr("class","axislabel")
-                        .attr("x", width)
-                        .attr("dx", "-10px")
-                        .attr("dy", "34")
-                        .style("text-anchor", "end")
-                        .text("Time");
-                chart.append("g")
-                    .attr("class", "y axis")
-                    .call(yAxis)
-                    .append("text")
-                        .attr("class","axislabel")
-                        .attr("transform", "rotate(-90)")
-                        .attr("y", -20)
-                        .attr("dy", "-0.71em")
-                        .style("text-anchor", "end")
-                        .text("Number");
-            });            
+            var redraw=function(){
+                var jday=menu.property("value");
+                d3.json("/DATA_counterstats_timeplot_data/"+counterid+"/"+jday, function(error,data){
+                    alert("Doing <"+"/DATA_counterstats_timeplot_data/"+counterid+"/"+jday+">");
+                    // restrict the range to the time of interest (depends on data!)
+                    TO DO
+                    //
+                    x.domain([data.xrange.min,data.xrange.max]);
+                    var rectasel = chartBody.selectAll("g")
+                        .data(data.values);
+                    rectasel.exit().remove();
+                    rectas=rectasel
+                        .enter()
+                        .append("g")
+                        .attr("transform", function(d) {return "translate("+x(d.start)
+                          +","+(d.value<0?y(100):y(d.value+1))+")"; } );
+                    rectas.append("rect")
+                        .attr("class",function(d){return d.value<0?"nonumberrect":"numberrect";})
+                        .attr("width",function(d) {return x(d.end)-x(d.start);})
+                        .attr("height",function(d){return d.value<0?(100*unitheight):unitheight;})
+                        .attr("fill-opacity",function(d){return d.value<0?0.3:1.0;});
+                    rectas.append("text")
+                        .attr("class",function(d){return d.value<0?"nonumberlabel":"numberlabel";})
+                        .attr("x", function(d){return 0.5*(x(d.end)-x(d.start));})
+                        .attr("y", 0)
+                        .attr("dy",function(d){return d.value<0?"22.0pt":(d.value<90?"-0.8pt":"9.2pt");})
+                        .style("text-anchor", "middle")
+                        .text(valueLabel);
+                    rectas.append("title")
+                        .text(function(d) { return valueLabel(d)+" => "+formatTime(d.start)+" to "+formatTime(d.end); });
+                    chart.append("g")
+                        .attr("class", "x axis")
+                        .attr("transform", "translate(0," + height + ")")
+                        .call(xAxis)
+                        .append("text")
+                            .attr("class","axislabel")
+                            .attr("x", width)
+                            .attr("dx", "-10px")
+                            .attr("dy", "34")
+                            .style("text-anchor", "end")
+                            .text("Time");
+                    chart.append("g")
+                        .attr("class", "y axis")
+                        .call(yAxis)
+                        .append("text")
+                            .attr("class","axislabel")
+                            .attr("transform", "rotate(-90)")
+                            .attr("y", -20)
+                            .attr("dy", "-0.71em")
+                            .style("text-anchor", "end")
+                            .text("Number");
+                });
+            };
+
+            var menu = d3.select("#menu select")
+                .on("change", redraw);
+
+            d3.json("/DATA_counterstats_timeplot_days/"+counterid, function(error,data){
+                ndays=d3.select("#ndays");
+                menu.selectAll("option")
+                    .data(data.days)
+                    .enter().append("option")
+                    .text(function(d) { return d; });
+                menu.property("value",data.days[data.days.length-1]);
+                ndays.text(data.n);
+                redraw();
+            });
         </script>
       <!-- End of the plot -->
     </div>

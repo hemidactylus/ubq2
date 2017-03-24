@@ -28,6 +28,25 @@ def localDateFromTimestamp(ts,tzonedesc):
     locDate=pytz.utc.localize(datetime.utcfromtimestamp(ts),is_dst=None)
     return locDate.astimezone(pytz.timezone(tzonedesc))
 
+def javaTimestampToTimestamp(jDate):
+    '''
+        from a Java timestamp to a python timestamp
+    '''
+    return jDate/1000.0
+
+def toJavaTimestamp(pDatetime):
+    '''
+        converts a python datetime to a Java timestamp (*1000)
+    '''
+    return mktime(pDatetime.timetuple())*1000
+
+def makeJavaDay(pDatetime):
+    '''
+        cuts the time from a python datetime
+        and makes it into a Java timestamp (i.e. *1000)
+    '''
+    return toJavaTimestamp(pDatetime.date())
+
 def stringToTimestamp(timestr):
     '''
         "18:44" to time(18,44,0)
