@@ -86,6 +86,9 @@
                     ),function(v){return v.end;});
                     time_min=d3.max([time_min,data.xrange.min]);
                     time_max=d3.min([time_max,data.xrange.max]);
+
+                    console.log("Redrawing "+data.values.length+" items.");
+
                     //
                     // x.domain([data.xrange.min,data.xrange.max]);
                     x.domain([time_min-PLOT_GUTTER,time_max+PLOT_GUTTER]);
