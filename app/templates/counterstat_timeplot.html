@@ -30,7 +30,7 @@
 
             var margin = {top: 20, right: 30, bottom: 40, left: 50},
                 width = 1000 - margin.left - margin.right,
-                height = 380 - margin.top - margin.bottom,
+                height = 350 - margin.top - margin.bottom,
                 unitheight = height / 100.0;
     
             var y = d3.scaleLinear()
@@ -73,79 +73,76 @@
                 return time;
             }
 
+            var xaxis=chart.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")");
+            xaxis.append("text")
+                .attr("class","axislabel")
+                .attr("x", width)
+                .attr("dx", "-10px")
+                .attr("dy", "34")
+                .style("text-anchor", "end")
+                .text("Time");
+            var yaxis=chart.append("g")
+                .attr("class", "y axis");
+            yaxis.append("text")
+                .attr("class","axislabel")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -20)
+                .attr("dy", "-0.71em")
+                .style("text-anchor", "end")
+                .text("Number");
+
             var redraw=function(){
                 PLOT_GUTTER=1000*120;
                 var jday=menu.property("value");
-                d3.json("/DATA_counterstats_timeplot_data/"+counterid+"/"+jday, function(error,data){
-                    // restrict the range to the time of interest (depends on data!)
-                    var time_min=d3.min(data.values.filter(
-                        function(v){return v.value>=0 && v.value!=23;}
-                    ),function(v){return v.start;});
-                    var time_max=d3.max(data.values.filter(
-                        function(v){return v.value>=0 && v.value!=23;}
-                    ),function(v){return v.end;});
-                    time_min=d3.max([time_min,data.xrange.min]);
-                    time_max=d3.min([time_max,data.xrange.max]);
+                if(jday!=""){
+                    d3.json("/DATA_counterstats_timeplot_data/"+counterid+"/"+jday, function(error,data){
+                        // restrict the range to the time of interest (depends on data!)
+                        var time_min=d3.min(data.values.filter(
+                            function(v){return v.value>=0 && v.value!=23;}
+                        ),function(v){return v.start;});
+                        var time_max=d3.max(data.values.filter(
+                            function(v){return v.value>=0 && v.value!=23;}
+                        ),function(v){return v.end;});
+                        time_min=d3.max([time_min,data.xrange.min]);
+                        time_max=d3.min([time_max,data.xrange.max]);
 
-                    console.log("Redrawing "+data.values.length+" items.");
+                        x.domain([time_min-PLOT_GUTTER,time_max+PLOT_GUTTER]);
+                        var rectasel = chartBody.selectAll("g");
+                        rectasel.remove();
 
-                    //
-                    // x.domain([data.xrange.min,data.xrange.max]);
-                    x.domain([time_min-PLOT_GUTTER,time_max+PLOT_GUTTER]);
-                    var rectasel = chartBody.selectAll("g")
-                        .data(data.values);
-                    rectasel.remove();
-                    rectasel.exit().remove();
-                    rectas=rectasel
-                        .enter()
-                        .append("g")
-                        .attr("transform", function(d) {return "translate("+x(d.start)
-                          +","+(d.value<0?y(100):y(d.value+1))+")"; } );
-                    rectas.append("rect")
-                        .attr("class",function(d){return d.value<0?"nonumberrect":"numberrect";})
-                        .attr("width",function(d) {return x(d.end)-x(d.start);})
-                        .attr("height",function(d){return d.value<0?(100*unitheight):unitheight;})
-                        .attr("fill-opacity",function(d){return d.value<0?0.3:1.0;});
-                    rectas.append("text")
-                        .attr("class",function(d){return d.value<0?"nonumberlabel":"numberlabel";})
-                        .attr("x", function(d){return 0.5*(x(d.end)-x(d.start));})
-                        .attr("y", 0)
-                        .attr("dy",function(d){return d.value<0?"22.0pt":(d.value<90?"-0.8pt":"9.2pt");})
-                        .style("text-anchor", "middle")
-                        .text(valueLabel);
-                    rectas.append("title")
-                        .text(function(d) { return valueLabel(d)+" => "+formatTime(d.start)+" to "+formatTime(d.end); });
-                    //
-                    d3.select("axislabel").remove();
-                    d3.select(".x.axis").remove();
-                    d3.select(".y.axis").remove();
-                    //
-                    chart.append("g")
-                        .attr("class", "x axis")
-                        .attr("transform", "translate(0," + height + ")")
-                        .call(xAxis)
-                        .append("text")
-                            .attr("class","axislabel")
-                            .attr("x", width)
-                            .attr("dx", "-10px")
-                            .attr("dy", "34")
-                            .style("text-anchor", "end")
-                            .text("Time");
-                    chart.append("g")
-                        .attr("class", "y axis")
-                        .call(yAxis)
-                        .append("text")
-                            .attr("class","axislabel")
-                            .attr("transform", "rotate(-90)")
-                            .attr("y", -20)
-                            .attr("dy", "-0.71em")
-                            .style("text-anchor", "end")
-                            .text("Number");
-                });
+                        // we now re-compute the d3 select to add new items
+                        rectasel=chartBody.selectAll("g").data(data.values);
+
+                        rectas=rectasel
+                            .enter()
+                            .append("g")
+                            .attr("transform", function(d) {return "translate("+x(d.start)
+                              +","+(d.value<0?y(100):y(d.value+1))+")"; } );
+                        rectas.append("rect")
+                            .attr("class",function(d){return d.value<0?"nonumberrect":"numberrect";})
+                            .attr("width",function(d) {return x(d.end)-x(d.start);})
+                            .attr("height",function(d){return d.value<0?(100*unitheight):unitheight;})
+                            .attr("fill-opacity",function(d){return d.value<0?0.3:1.0;});
+                        rectas.append("text")
+                            .attr("class",function(d){return d.value<0?"nonumberlabel":"numberlabel";})
+                            .attr("x", function(d){return 0.5*(x(d.end)-x(d.start));})
+                            .attr("y", 0)
+                            .attr("dy",function(d){return d.value<0?"22.0pt":(d.value<90?"-0.8pt":"9.2pt");})
+                            .style("text-anchor", "middle")
+                            .text(valueLabel);
+                        rectas.append("title")
+                            .text(function(d) { return valueLabel(d)+" => "+formatTime(d.start)+" to "+formatTime(d.end); });
+                        xaxis.call(xAxis);
+                        yaxis.call(yAxis);
+                    });
+                }
             };
 
+            alert("Add a check to prevent useless redraws, with a var to keep track");
             var menu = d3.select("#menu select")
-                .on("change", redraw);
+                .on("change keyup", redraw);
 
             d3.json("/DATA_counterstats_timeplot_days/"+counterid, function(error,data){
                 ndays=d3.select("#ndays");
