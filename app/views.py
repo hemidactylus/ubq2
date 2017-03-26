@@ -88,7 +88,8 @@ from app.utils.parsing import integerOrNone
 
 from app.data_endpoints import (
     DATA_counterstats_timeplot_days,
-    DATA_counterstats_timeplot_data
+    DATA_counterstats_timeplot_data,
+    DATA_counter_duration_data,
 )
 
 @app.before_request
@@ -500,6 +501,20 @@ def ep_counterstats_timeplot(counterid):
         'counterstat_timeplot.html',
         user=user,
         title='Time plot for counter "%s"' % counterid,
+        counterid=counterid,
+    )
+
+@app.route('/counterstats_durations/<counterid>')
+@login_required
+def ep_counterstats_durations(counterid):
+    '''
+        The page with the counter-specific time plot
+    '''
+    user=g.user
+    return render_template(
+        'counterstat_durations.html',
+        user=user,
+        title='Number durations for counter "%s"' % counterid,
         counterid=counterid,
     )
 

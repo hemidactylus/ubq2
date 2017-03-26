@@ -24,6 +24,7 @@ from flask_login import  (
 )
 from datetime import datetime
 from time import time
+from collections import Counter
 
 from app import app, lm
 
@@ -46,6 +47,9 @@ from app.utils.dateformats import (
     toJavaTimestamp,
     makeJavaDay,
     javaTimestampToTimestamp,
+)
+from app.utils.logstats import (
+    eventDuration,
 )
 
 @app.route('/DATA_counterstats_timeplot_days/<counterid>')
@@ -112,5 +116,45 @@ def DATA_counterstats_timeplot_data(counterid,jday):
         },
         'values': eventList,
         'countername': counterName,
+    }
+    return jsonify(**fullStructure)
+
+@app.route('/DATA_counter_duration_data/<counterid>/<daysback>')
+@app.route('/DATA_counter_duration_data/<counterid>')
+@login_required
+def DATA_counter_duration_data(counterid,daysback=None):
+    '''
+        returns a JSON with a histogram of frequency for
+        the number durations for a given counter.
+        Special values "-1" does not enter the statistics.
+        If starttime is not provided, the whole history is read,
+        otherwise it is taken to be a number of days back w.r.t. now.
+    '''
+    db=dbOpenDatabase(dbFullName)
+    counterName=dbGetCounter(db,counterid).fullname
+    # retrieve all events for the required counter and the required time frame
+    # must build the time-window after reconverting back from jday
+    startTimestamp=pastTimestamp(nDays=int(daysback)) if daysback else None
+
+    durationHistogram=Counter(
+        [
+            eventDuration(ev)
+            for ev in getCounterStatusSpans(
+                db,
+                counterid, 
+                startTime=startTimestamp,
+            )
+            if ev.value!=-1
+        ]
+    )
+    fullStructure={
+        'histogram': [
+            {
+                'duration': k,
+                'count': v
+            } 
+            for k,v in durationHistogram.items()
+        ],
+        'n': sum(durationHistogram.values()),
     }
     return jsonify(**fullStructure)

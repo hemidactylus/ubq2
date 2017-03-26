@@ -131,17 +131,13 @@
     </div>
   </form>
   <script>
-    var recolor=function(){
-      var boxcol_t=d3.select("#colorinput_text").property("value");
-      d3.select("#colorbox_text").style("color",boxcol_t);
-      var boxcol_b=d3.select("#colorinput_back").property("value");
-      d3.select("#colorbox_back").style("color",boxcol_b);
-      var boxcol_n=d3.select("#colorinput_note").property("value");
-      d3.select("#colorbox_note").style("color",boxcol_n);
+    var recolor=function(postfix){
+      var boxcol_t=d3.select("#colorinput_"+postfix).property("value");
+      d3.select("#colorbox_"+postfix).style("color",boxcol_t);
     };
-    var reco = d3.select("#colorinput_text").on("change keyup",recolor);
-    var reco = d3.select("#colorinput_back").on("change keyup",recolor);
-    var reco = d3.select("#colorinput_note").on("change keyup",recolor);
+    var reco = d3.select("#colorinput_text").on("change keyup",function(){recolor("text");});
+    var reco = d3.select("#colorinput_back").on("change keyup",function(){recolor("back");});
+    var reco = d3.select("#colorinput_note").on("change keyup",function(){recolor("note");});
   </script>
 </div>
 

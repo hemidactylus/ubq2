@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="container">
+      <h3>{{ title }}</h3>
+      <p id="menu">
+        <b>Aggregate data back to</b> <select></select>
+        <b>in the past (total: <span id="totalcount"></span> events).</b>
+      </p>
+      <hr>
+      <!-- Here the plot is built -->
+        <svg class="chart"></svg>
+        <script src="/static/ubq/d3/d3.min.js" charset="utf-8"></script>
+        <script>
+          var counterid="{{counterid}}";
+        </script>
+        <script>
+
+            var valueLabel=function(d){return d>60?"61+":d;};
+            var formatCount=function(hitem){return hitem.duration;};
+
+            var margin = {top: 20, right: 30, bottom: 40, left: 50},
+                width = 1000 - margin.left - margin.right,
+                height = 350 - margin.top - margin.bottom,
+                unitheight = height / 100.0;
+
+            var bpadding=0.2;
+
+            var y = d3.scaleLinear()
+                    .range([height,0]);
+            var x = d3.scaleLinear()
+                    .range([0,width]);
+            var xAxis = d3.axisBottom()
+                .scale(x)
+            var yAxis = d3.axisLeft()
+                .scale(y);
+
+            var chart = d3.select(".chart")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("pointer-events", "all")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var chartBody=chart.append("g");
+
+            var xaxis=chart.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")");
+            xaxis.append("text")
+                .attr("class","axislabel")
+                .attr("x", width)
+                .attr("dx", "-10px")
+                .attr("dy", "34")
+                .style("text-anchor", "end")
+                .text("Duration (minutes)");
+            var yaxis=chart.append("g")
+                .attr("class", "y axis");
+            yaxis.append("text")
+                .attr("class","axislabel")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -20)
+                .attr("dy", "-0.71em")
+                .style("text-anchor", "end")
+                .text("Count");
+
+            var redraw=function(){
+                var jday=menu.property("value");
+                if(jday!=""){
+                    var reqText="/DATA_counter_duration_data/"+counterid;
+                    if(jday>0){
+                        reqText=reqText+"/"+jday;
+                    }
+                    totevents=d3.select("#totalcount");
+                    d3.json(reqText, function(error,data){
+                        // restrict the range to the nonzero portion of histogram
+                        var histoXMin=d3.min(data.histogram,function(d){return d.duration;});
+                        var histoXMax=d3.max(data.histogram,function(d){return d.duration;});
+                        x.domain([histoXMin-0.5,histoXMax+0.5]);
+                        var barwidth=x(2)-x(1+bpadding);
+                        var histoYMax=d3.max(data.histogram,function(d){return d.count;});
+                        y.domain([0,histoYMax*1.05]);
+
+                        totevents.text(data.n);
+
+                        var rectasel = chartBody.selectAll("g");
+                        rectasel.remove();
+                        // we now re-compute the d3 select to add new items
+                        rectasel=chartBody.selectAll("g").data(data.histogram);
+
+                        var bar=rectasel
+                            .enter()
+                            .append("g")
+                            .attr("transform", function(d){return "translate("+x(d.duration-0.5+0.5*bpadding)+","+y(d.count)+")"; });
+                        bar.append("rect")
+                            .attr("class","numberrect")
+                            .attr("height", function(d) {return height-y(d.count); })
+                            .attr("width", barwidth)
+                            .attr("fill", function (d) {return "blue"})
+                            .append("title")
+                            .text(function(d){return valueLabel(d.duration)+" minutes: "+d.count+" times.";});
+
+                        xaxis.call(xAxis);
+                        yaxis.call(yAxis);
+                    });
+                }
+            };
+
+            // alert("Add a check to prevent useless redraws, with a var to keep track");
+            var menu = d3.select("#menu select")
+                .on("change keyup", redraw);
+
+            var timespans=[
+                {daysback: 1, description: "one day"},
+                {daysback: 2, description: "two days"},
+                {daysback: 7, description: "one week"},
+                {daysback: 14, description: "two weeks"},
+                {daysback: 30, description: "one month"},
+                {daysback: 60, description: "two months"},
+                {daysback: 180, description: "half a year"},
+                {daysback: 365, description: "one year"},
+                {daysback: -1, description: "forever"}
+            ];
+
+            ndays=d3.select("#ndays");
+            menu.selectAll("option")
+                .data(timespans)
+                .enter().append("option")
+                .property("value",function(d){return d.daysback;})
+                .text(function(d) { return d.description; });
+            menu.property("value","-1");
+            redraw();
+        </script>
+      <!-- End of the plot -->
+    </div>
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}

@@ -29,6 +29,10 @@
                 <a href="{{url_for('ep_counterstats_timeplot', counterid=counter.id)}}">
                   {{ counter.name }}
                 </a>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <a href="{{url_for('ep_counterstats_durations', counterid=counter.id)}}">
+                  durations
+                </a>
               </td>
           </tr>
         {% endfor %}

@@ -13,6 +13,10 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 - svg digits
 
+- Javascript+D3
+    * how to validate colors in the real-time counter editor
+    * How to iterate bindings to keyup with a loop in counter editor
+
 *******
 
 - Logging system, tracking system, their plot with D3 and a smart way of archiving historical data
