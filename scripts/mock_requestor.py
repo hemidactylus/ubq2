@@ -14,14 +14,15 @@ reqSettings={
     'key'      : 123456,
     'minincr'  :      1,
     'maxincr'  :     10,
+    'beat_frequency': 15,
     'url'      : 'http://localhost:5000/update1.php',
 }
 
 responseDesc={
-    0: 'OK   ',
+    0: 'OK',
     1: '!args',
-    2: '!key ',
-    3: '!req ',
+    2: '!key',
+    3: '!req',
 }
 
 def main():
@@ -56,7 +57,7 @@ def main():
     if argTrouble:
         print('Errors in command line:')
         print('\n'.join('    %s' % msg for msg in argTrouble))
-        print('Usage: <cmd> [-h | [-s key val [-s key val [...]]]]')
+        print('Usage: <cmd> [-h | [-set key val [-set key val [...]]]]')
         print('Keys:')
         print('\n'.join('    %s => %s' % (k,v) for k,v in reqSettings.items()))
         return
@@ -65,13 +66,22 @@ def main():
     print('Starting requestor')
     while True:
         cntVal=(cntVal+randint(reqSettings['minincr'],reqSettings['maxincr'],))%100
-        print('[%i] Sending val=%2i ...' % (int(time()),cntVal), end='')
-        reqText='%s?N=%i&K=%i' % (reqSettings['url'],cntVal,reqSettings['key'])
-        answer=int(requests.get(reqText).text)
-        print(' => %s. ' % responseDesc[int(answer)], end='')
         sleepTime=randint(reqSettings['mindelay'],reqSettings['maxdelay'])
-        print('Sleeping %i seconds.' % sleepTime)
-        sleep(sleepTime)
+        timeToSleep=sleepTime
+        iteration=0
+        while(timeToSleep>0):
+            if iteration==0:
+                print('[%i] Sending val=%2i ...' % (int(time()),cntVal), end='')
+            else:
+                print('        [%i] Re-sending ...' % (int(time())), end='')
+            iteration+=1
+            reqText='%s?N=%i&K=%i' % (reqSettings['url'],cntVal,reqSettings['key'])
+            answer=int(requests.get(reqText).text)
+            print(' => %s. ' % responseDesc[int(answer)], end='')
+            thisSleep=min(reqSettings['beat_frequency'],timeToSleep)
+            print('Sleeping %i/%i seconds.' % (thisSleep,timeToSleep))
+            sleep(thisSleep)
+            timeToSleep-=thisSleep
 
 if __name__=='__main__':
     main()
