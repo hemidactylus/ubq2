@@ -8,6 +8,7 @@
     Counter properties
   </h2>
   <hr>
+  <script src="/static/ubq/d3/d3.min.js" charset="utf-8"></script>
   <form action="" method="post" name="login">
     <div class="form-group">
      {{ form.hidden_tag() }}
@@ -65,13 +66,13 @@
             Text color
             &nbsp;<a href="{{ url_for('ep_colorhelp') }}" target="_blank"><i class="fa fa-question-circle-o fa-lg" aria-hidden="true"></i></a>
             &nbsp;
-            <span style="color: {{ form.fcolor.data }}">
+            <span id="colorbox_text" style="color: {{ form.fcolor.data }}">
               <i class="fa fa-square fa-2x" aria-hidden="true"></i>
             </span>
           </label>
         </div>
         <div class="col-sm-2">
-          {{ form.fcolor(class_="form-control") }}
+          {{ form.fcolor(class_="form-control",id="colorinput_text") }}
           {% for error in form.fcolor.errors %}
             <span style="color: red;">{{ error }}</span>
           {% endfor %}
@@ -81,13 +82,13 @@
             Back color
             &nbsp;<a href="{{ url_for('ep_colorhelp') }}" target="_blank"><i class="fa fa-question-circle-o fa-lg" aria-hidden="true"></i></a>
             &nbsp;
-            <span style="color: {{ form.bcolor.data }}">
+            <span id="colorbox_back" style="color: {{ form.bcolor.data }}">
               <i class="fa fa-square fa-2x" aria-hidden="true"></i>
             </span>
           </label>
         </div>
         <div class="col-sm-2">
-          {{ form.bcolor(class_="form-control") }}
+          {{ form.bcolor(class_="form-control",id="colorinput_back") }}
           {% for error in form.bcolor.errors %}
             <span style="color: red;">{{ error }}</span>
           {% endfor %}
@@ -97,13 +98,13 @@
             Note color
             &nbsp;<a href="{{ url_for('ep_colorhelp') }}" target="_blank"><i class="fa fa-question-circle-o fa-lg" aria-hidden="true"></i></a>
             &nbsp;
-            <span style="color: {{ form.ncolor.data }}">
+            <span id="colorbox_note" style="color: {{ form.ncolor.data }}">
               <i class="fa fa-square fa-2x" aria-hidden="true"></i>
             </span>
           </label>
         </div>
         <div class="col-sm-2">
-          {{ form.ncolor(class_="form-control") }}
+          {{ form.ncolor(class_="form-control",id="colorinput_note") }}
           {% for error in form.ncolor.errors %}
             <span style="color: red;">{{ error }}</span>
           {% endfor %}
@@ -129,6 +130,19 @@
       </div>
     </div>
   </form>
+  <script>
+    var recolor=function(){
+      var boxcol_t=d3.select("#colorinput_text").property("value");
+      d3.select("#colorbox_text").style("color",boxcol_t);
+      var boxcol_b=d3.select("#colorinput_back").property("value");
+      d3.select("#colorbox_back").style("color",boxcol_b);
+      var boxcol_n=d3.select("#colorinput_note").property("value");
+      d3.select("#colorbox_note").style("color",boxcol_n);
+    };
+    var reco = d3.select("#colorinput_text").on("change keyup",recolor);
+    var reco = d3.select("#colorinput_back").on("change keyup",recolor);
+    var reco = d3.select("#colorinput_note").on("change keyup",recolor);
+  </script>
 </div>
 
 {% block footer %}
