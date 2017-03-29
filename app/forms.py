@@ -63,6 +63,7 @@ class SettingsForm(FlaskForm):
     checkbeatfrequency=IntegerField('checkbeatfrequency',validators=[NumberRange(min=1)])
     offlinetimeout=IntegerField('offlinetimeout',validators=[NumberRange(min=1)])
     alerttimeout=IntegerField('alerttimeout',validators=[NumberRange(min=1)])
+    backonlinealerttimeout=IntegerField('backonlinealerttimeout',validators=[NumberRange(min=1)])
     alertwindowstart=StringField('alertwindowstart',validators=[TimeExpression()])
     alertwindowend=StringField('alertwindowend',validators=[TimeExpression()])
     workingtimezone=SelectField('workingtimezones',choices=[(t,t) for t in sorted(pytz.common_timezones)])

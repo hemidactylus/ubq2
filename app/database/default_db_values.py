@@ -27,4 +27,8 @@ default_settings=[
         'key'           : 'CHECKBEAT_FREQUENCY',
         'value'         : '10',
     },
+    {
+        'key'           : 'COUNTER_BACK_ONLINE_TIMESPAN',
+        'value'         : '18000',
+    },
 ]

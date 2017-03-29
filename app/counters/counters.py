@@ -15,6 +15,8 @@ from app.database.dbtools import (
     dbGetCounterStatus,
     dbAddCounterStatus,
     dbGetSetting,
+    dbGetCounter,
+    dbGetUsers,
 )
 from app.database.models import (
     CounterStatusSpan,
@@ -24,10 +26,16 @@ from app.database.dblogging import (
 )
 from config import (
     dbFullName,
+    UBQ_SERVICE_FULLNAME,
+    EMAIL_OFFLINE_ALERT_SUBJECT,
+    EMAIL_OFFLINE_ALERT_BODY,
+    EMAIL_ONLINE_ALERT_SUBJECT,
+    EMAIL_ONLINE_ALERT_BODY,
 )
 from app.utils.dateformats import (
     localDateFromTimestamp,
 )
+from app.sendMail.sendMail import sendMail
 
 def constrain(num,min,max,outervalue):
     if num<=max and num>=min:
@@ -81,6 +89,7 @@ def signalNumberToCounter(cKey, nNumber):
             # right now, at the update, we assume counter online and no notify needed
             newStatus['online']=1
             newStatus['tonotify']=0
+            newStatus['lastnotify']=0
         # write changes to record
         if oldStatus is not None:
             dbUpdateCounterStatus(db,newStatus['id'],newStatus)
@@ -130,11 +139,73 @@ def checkCounterActivity(db, counterid):
             #   if in the time window, send notification out
             #   mark tonotify=False in any case
             if isWithinAlertTime(db, time()):
-                print('HERE SHOULD ALERT OF OFFLINE "%s"!' % counterid)
+                dispatchOfflineAlert(db,counterid)
+                newStatus['lastnotify']=int(time())
             newStatus['tonotify']=0
+        if newOnline and not cntStatus.online and not cntStatus.tonotify:
+            # it is coming back online, it wasnt' at the previous check,
+            # and the notification has been sent out already:
+            #    check if a back-online notification is to be sent:
+            #    i.e. (1) we must be in the time window, (2) not too much time must have passed
+            if isWithinAlertTime(db, time()) and \
+                (time()-cntStatus.lastnotify)<=int(dbGetSetting(db,'COUNTER_BACK_ONLINE_TIMESPAN')):
+                #
+                dispatchOnlineAlert(db, counterid)
         if newStatus:
             newStatus['id']=counterid
             dbUpdateCounterStatus(db,counterid,newStatus)
+
+def dispatchOnlineAlert(db,counterid):
+    '''
+        Scans the user accounts and, for those with an active alert-email setting,
+        prepares and sends the back-online email
+    '''
+    addressees=[u.email for u in dbGetUsers(db) if u.subscribed]
+    if addressees:
+        cnt=dbGetCounter(db,counterid)
+        if cnt:
+            subject=EMAIL_ONLINE_ALERT_SUBJECT.format(
+                countername=cnt.fullname,
+                counterid=cnt.id,
+            )
+            body=EMAIL_ONLINE_ALERT_BODY.format(
+                countername=cnt.fullname,
+                counterid=cnt.id,
+                alerttimeout=dbGetSetting(db,'COUNTER_ALERT_TIMEOUT'),
+                servicename=UBQ_SERVICE_FULLNAME,
+                counternotes=cnt.notes,
+            )
+            sendMail(
+                mailSubject=subject,
+                mailBody=body,
+                recipientList=addressees,
+            )
+
+def dispatchOfflineAlert(db,counterid):
+    '''
+        Scans the user accounts and, for those with an active alert-email setting,
+        prepares and sends the alert-warning email
+    '''
+    addressees=[u.email for u in dbGetUsers(db) if u.subscribed]
+    if addressees:
+        cnt=dbGetCounter(db,counterid)
+        if cnt:
+            subject=EMAIL_OFFLINE_ALERT_SUBJECT.format(
+                countername=cnt.fullname,
+                counterid=cnt.id,
+            )
+            body=EMAIL_OFFLINE_ALERT_BODY.format(
+                countername=cnt.fullname,
+                counterid=cnt.id,
+                alerttimeout=dbGetSetting(db,'COUNTER_ALERT_TIMEOUT'),
+                servicename=UBQ_SERVICE_FULLNAME,
+                counternotes=cnt.notes,
+            )
+            sendMail(
+                mailSubject=subject,
+                mailBody=body,
+                recipientList=addressees,
+            )
 
 def isWithinAlertTime(db, timestamp):
     '''

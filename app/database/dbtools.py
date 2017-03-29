@@ -181,6 +181,15 @@ def dbUpdateUser(db,nUser):
         nUser.asDict(),
     )
 
+def dbGetUsers(db, keepAsDict=False):
+    if keepAsDict:
+        return list(dbRetrieveAllRecords(db,'users'))
+    else:
+        return [
+            User(**counterDict)
+            for counterDict in dbRetrieveAllRecords(db,'users')
+        ]
+
 def dbGetCounters(db, keepAsDict=False):
     if keepAsDict:
         return list(dbRetrieveAllRecords(db,'counters'))

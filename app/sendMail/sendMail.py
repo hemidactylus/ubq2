@@ -10,7 +10,7 @@ import smtplib
 from datetime import datetime
 import socket
 
-from mailSettings import (
+from app.sendMail.mailSettings import (
     gmailServerConnectString,
     senderUsername,
     senderPassword,

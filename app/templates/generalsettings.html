@@ -65,6 +65,27 @@
           </label>
         </div>
       </div>
+
+      <div class="row row-grid">
+        <div class="col-sm-2">
+          <label for="backonlinealerttimeout">
+            Online notify within
+          </label>
+        </div>
+        <div class="col-sm-2">
+          {{ form.backonlinealerttimeout(size=12, class_="form-control") }}
+          {% for error in form.backonlinealerttimeout.errors %}
+            <span style="color: red;">{{ error }}</span>
+          {% endfor %}
+        </div>
+        <div class="col-sm-1">
+          <label for="backonlinealerttimeout">
+            seconds.
+          </label>
+        </div>
+      </div>
+
+
       <div class="row row-grid">
         <div class="col-sm-2">
           <label for="alertwindowstart">

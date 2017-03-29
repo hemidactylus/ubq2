@@ -24,6 +24,7 @@ dbTablesDesc={
             # states w.r.t. notifications
             ('online', 'INTEGER'),      # whether it is considered online or offline w.r.t. wakeups and notifies
             ('tonotify', 'INTEGER'),    # whether the last offline-going event is still to notify
+            ('lastnotify', 'INTEGER'),  # datetime of the last alert actually sent out
         ],
     },
     'users': {

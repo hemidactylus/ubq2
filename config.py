@@ -8,6 +8,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 WTF_CSRF_ENABLED = True
 from sensible_config import SECRET_KEY
 
+# official service name
+UBQ_SERVICE_FULLNAME='UBQ [www.salamandrina.net/ubq]'
+
 # database settings
 DB_DIRECTORY=os.path.join(basedir,'app/database')
 DB_NAME='ubq2.db'
@@ -45,6 +48,26 @@ MODE_ICON_MAP={
     'p': 'fa-key',
 }
 DATE_FORMAT='%b %d, %H:%M'
+
+# Template for sending out email alerts
+EMAIL_OFFLINE_ALERT_SUBJECT='UBQ Counter {counterid} offline alert'
+EMAIL_OFFLINE_ALERT_BODY='''UBQ Alert:
+counter "{countername}" ({counterid}) offline for more than {alerttimeout} seconds.
+
+Counter ID: {counterid}.
+Counter name: {countername}.
+Counter description: {counternotes}.
+
+You receive this email since your account on {servicename} has email notifications turned on and the time-window condition is currently met.'''
+EMAIL_ONLINE_ALERT_SUBJECT='UBQ Counter {counterid} is back online'
+EMAIL_ONLINE_ALERT_BODY='''UBQ Counter Back Online:
+counter "{countername}" ({counterid}) is online again.
+
+Counter ID: {counterid}.
+Counter name: {countername}.
+Counter description: {counternotes}.
+
+You receive this email since your account on {servicename} has email notifications turned on and the time-window condition is currently met.'''
 
 # Usage tracking level: True uses cookies, False relies on User-Agent
 USE_ANONYMOUS_COOKIES=True

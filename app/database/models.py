@@ -93,6 +93,7 @@ class CounterStatus(dictableObject):
         'value',
         'online',
         'tonotify',
+        'lastnotify',
     ]
 
     def __init__(self,**kwargs):

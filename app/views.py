@@ -442,6 +442,7 @@ def ep_generalsettings():
         # load and validate values in form and save them to DB
         offlinetimeout=f.offlinetimeout.data
         alerttimeout=f.alerttimeout.data
+        backonlinealerttimeout=f.backonlinealerttimeout.data
         workingtimezone=f.workingtimezone.data
         checkbeatfrequency=f.checkbeatfrequency.data
         if int(alerttimeout)<offlinetimeout:
@@ -468,6 +469,7 @@ def ep_generalsettings():
         dbSaveSetting(db,'CHECKBEAT_FREQUENCY',checkbeatfrequency)
         dbSaveSetting(db,'COUNTER_OFFLINE_TIMEOUT',offlinetimeout)
         dbSaveSetting(db,'COUNTER_ALERT_TIMEOUT',alerttimeout)
+        dbSaveSetting(db,'COUNTER_BACK_ONLINE_TIMESPAN',backonlinealerttimeout)
         dbSaveSetting(db,'WORKING_TIMEZONE',workingtimezone)
         dbSaveSetting(db,'ALERT_WINDOW_START',alertwindowstart.strftime('%H:%M'))
         dbSaveSetting(db,'ALERT_WINDOW_END',alertwindowend.strftime('%H:%M'))
@@ -479,6 +481,7 @@ def ep_generalsettings():
         f.checkbeatfrequency.data=dbGetSetting(db,'CHECKBEAT_FREQUENCY')
         f.offlinetimeout.data=dbGetSetting(db,'COUNTER_OFFLINE_TIMEOUT')
         f.alerttimeout.data=dbGetSetting(db,'COUNTER_ALERT_TIMEOUT')
+        f.backonlinealerttimeout.data=dbGetSetting(db,'COUNTER_BACK_ONLINE_TIMESPAN')
         f.alertwindowstart.data=dbGetSetting(db,'ALERT_WINDOW_START')
         f.alertwindowend.data=dbGetSetting(db,'ALERT_WINDOW_END')
         f.workingtimezone.data=dbGetSetting(db,'WORKING_TIMEZONE')

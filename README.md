@@ -11,11 +11,16 @@ UBQ 2 SERVER-SIDE TECH SPECS
 - Slowness in editing counters: to investigate. After 'save counter' there's sometimes a 1-2 sec delay
     before the ep_counters endpoint is queried. Seemingly out-of-my-code, perhaps DB related?
 
+- Email alert also if back-online and within time-window (and had sent email!)
+
+- A special system-alert table to log special events such as cannot-send-email and such
+
 - svg digits
 
 - Javascript+D3
     * how to validate colors in the real-time counter editor
     * How to iterate bindings to keyup with a loop in counter editor
+    * put number on bar (in the timeplot) only if bar has enough width
 
 *******
 
