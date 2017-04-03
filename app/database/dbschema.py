@@ -4,7 +4,9 @@
 
 dbTablesDesc={
     'counters': {                       # STATIC, DESIGNED FEATURES OF THE COUNTER
-        'primary_key': ('id', 'TEXT'),  # CC1, EM1 ...
+        'primary_key': [
+            ('id', 'TEXT'),  # CC1, EM1 ...
+        ],
         'columns': [
             ('fullname','TEXT'),        # complete, human readable name
             ('notes','TEXT'),
@@ -16,7 +18,9 @@ dbTablesDesc={
         ],
     },
     'counterstatuses': {                # DYNAMIC STATUS DEPENDING ON TIME AND UPDATES
-        'primary_key': ('id', 'TEXT'),
+        'primary_key': [
+            ('id', 'TEXT'),
+        ],
         'columns': [
             ('lastupdate','INTEGER'),   # datetime of the last received signal
             ('value', 'INTEGER'),       # the last number received
@@ -28,7 +32,9 @@ dbTablesDesc={
         ],
     },
     'users': {
-        'primary_key': ('username', 'TEXT'),
+        'primary_key': [
+            ('username', 'TEXT'),
+        ],
         'columns': [
             ('fullname', 'TEXT'),
             ('passwordhash','TEXT'),
@@ -37,7 +43,9 @@ dbTablesDesc={
         ],
     },
     'settings': {
-        'primary_key': ('key', 'TEXT'), # a unique string identifying the setting
+        'primary_key': [
+            ('key', 'TEXT'), # a unique string identifying the setting
+        ],
         'columns': [
             ('value', 'TEXT'),          # this setting's value - always a string
         ],
@@ -55,10 +63,12 @@ dbTablesDesc={
     # this stores the per-user, per-counter, per-day pattern of usage:
     #   time of first and last request, number of requests
     'stat_userusagedays': {
-        'columns': [
+        'primary_key': [
             ('userid',      'TEXT'),    # userID - a string
             ('counterid',   'TEXT'),    # counter ID
             ('date',        'INTEGER'), # a timestamp expressing an exact date
+        ],
+        'columns': [
             ('firstrequest','INTEGER'), # datetime of first request
             ('lastrequest', 'INTEGER'), # datetime of (currently) last request
             ('nrequests',   'INTEGER'), # number of requests received

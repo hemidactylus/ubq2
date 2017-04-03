@@ -3,7 +3,7 @@
 import sqlite3 as lite
 from operator import itemgetter
 
-from app.database.models import(
+from app.database.models import (
     User,
     Counter,
     CounterStatus,
@@ -20,7 +20,7 @@ def listColumns(tableName):
     '''
     colList=[]
     if 'primary_key' in dbTablesDesc[tableName]:
-        colList+=[dbTablesDesc[tableName]['primary_key'][0]]
+        colList+=map(itemgetter(0),dbTablesDesc[tableName]['primary_key'])
     colList+=map(itemgetter(0),dbTablesDesc[tableName]['columns'])
     return colList
 
@@ -38,14 +38,14 @@ def dbAddRecordToTable(db,tableName,recordDict):
     return
 
 def dbUpdateRecordOnTable(db,tableName,newDict, allowPartial=False):
-    dbKey=dbTablesDesc[tableName]['primary_key'][0]
+    dbKeys=list(map(itemgetter(0),dbTablesDesc[tableName]['primary_key']))
     otherFields=list(map(itemgetter(0),dbTablesDesc[tableName]['columns']))
     updatePart=', '.join('%s=?' % of for of in otherFields if not allowPartial or of in newDict)
     updatePartValues=[newDict[of] for of in otherFields if not allowPartial or of in newDict]
-    whereClause='%s=?' % dbKey
-    whereValue=newDict[dbKey]
+    whereClause=' AND '.join('%s=?' % dbk for dbk in dbKeys)
+    whereValues=[newDict[dbk] for dbk in dbKeys]
     updateStatement='UPDATE %s SET %s WHERE %s' % (tableName,updatePart,whereClause)
-    updateValues=updatePartValues+[whereValue]
+    updateValues=updatePartValues+whereValues
     if DB_DEBUG:
         print('[dbUpdateRecordOnTable] %s' % updateStatement)
         print('[dbUpdateRecordOnTable] %s' % ','.join('%s' % iv for iv in updateValues))
@@ -60,15 +60,21 @@ def dbOpenDatabase(dbFileName):
 def dbCreateTable(db,tableName,tableDesc):
     '''
         tableName is a string
-        tableDesc is a nonempty array of pairs (name,type)
+        tableDesc can contain a 'primary_key' -> nonempty array of pairs  (name,type)
+                    and holds a 'columns'     -> similar array with other (name,type) items
     '''
-    fieldLines=[]
-    if 'primary_key' in tableDesc:
-        fieldLines+=['%s %s PRIMARY KEY' % (tableDesc['primary_key'])]
-    fieldLines+=['%s %s' % fld for fld in tableDesc['columns']]
+    fieldLines=[
+        '%s %s' % fPair
+        for fPair in list(tableDesc.get('primary_key',[]))+list(tableDesc['columns'])
+    ]
     createCommand='CREATE TABLE %s (\n\t%s\n);' % (
         tableName,
-        ',\n\t'.join(fieldLines),
+        ',\n\t'.join(
+            fieldLines+(
+                ['PRIMARY KEY (%s)' % (', '.join(map(itemgetter(0),tableDesc['primary_key'])))]
+                if 'primary_key' in tableDesc else []
+            )
+        )
     )
     if DB_DEBUG:
         print('[dbCreateTable] %s' % createCommand)
