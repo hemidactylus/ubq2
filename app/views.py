@@ -39,6 +39,8 @@ from config import (
     IFRAME_EMBED_CODE,
     APP_COMPLETE_ADDRESS,
     USE_ANONYMOUS_COOKIES,
+    COOKIE_DURATION_SECONDS,
+    PERFORM_USER_IDENTIFICATION,
 )
 from .forms import (
     LoginForm,
@@ -72,7 +74,10 @@ from app.counters.counters import (
     checkCounterActivity,
     checkBeat,
 )
-from app.database.dblogging import getCounterStatusSpans
+from app.database.dblogging import (
+    getCounterStatusSpans,
+    logUserCounterRequest,
+)
 from app.utils.htmlColors import htmlColors
 from app.utils.dateformats import (
     formatTimestamp,
@@ -191,10 +196,17 @@ def ep_showcounter(counterid):
     #
     if counterDict is not None:
         # requestor identification is here
-        if USE_ANONYMOUS_COOKIES:
-            userId=request.cookies.get('uuid',str(uuid.uuid4()))
-        else:
-            userId=hashlib.sha1(request.headers.get('User-Agent','').encode()).hexdigest()
+        userId=None
+        if PERFORM_USER_IDENTIFICATION:
+            try:
+                if USE_ANONYMOUS_COOKIES:
+                    userId=request.cookies.get('uuid',str(uuid.uuid4()))
+                else:
+                    userId=hashlib.sha1(request.headers.get('User-Agent','').encode()).hexdigest()
+            except:
+                pass
+        if userId:
+            logUserCounterRequest(db,userId,counterid)
         # end of req id
         counterStatus=dbGetCounterStatus(db, counterDict['id'], keepAsDict=True)
         if counterStatus is not None:
@@ -233,8 +245,9 @@ def ep_showcounter(counterid):
             )
         )
         # cookie setting, a one-year cookie
-        if USE_ANONYMOUS_COOKIES:
-            response.set_cookie('uuid',userId,max_age=86400*365)
+        if PERFORM_USER_IDENTIFICATION:
+            if USE_ANONYMOUS_COOKIES:
+                response.set_cookie('uuid',userId,max_age=COOKIE_DURATION_SECONDS)
         #
         return response
     else:

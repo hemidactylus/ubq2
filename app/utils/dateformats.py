@@ -28,6 +28,14 @@ def localDateFromTimestamp(ts,tzonedesc):
     locDate=pytz.utc.localize(datetime.utcfromtimestamp(ts),is_dst=None)
     return locDate.astimezone(pytz.timezone(tzonedesc))
 
+def localDayTimestamp(ts,tzonedesc):
+    '''
+        Given a timestamp and a timezone, the timestamp
+        of the immediately-preceding midnight is built.
+        Note this respects the proper midnight
+    '''
+    return mktime(localDateFromTimestamp(ts,tzonedesc).date().timetuple())
+
 def javaTimestampToTimestamp(jDate):
     '''
         from a Java timestamp to a python timestamp

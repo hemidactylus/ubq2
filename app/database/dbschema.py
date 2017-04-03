@@ -42,6 +42,8 @@ dbTablesDesc={
             ('value', 'TEXT'),          # this setting's value - always a string
         ],
     },
+    # this stores the historical time-of-permanence (start,stop)
+    # in a given status (=a number) for each counter
     'stat_counterstatusspans': {
         'columns': [
             ('counterid',   'TEXT'),    # counter ID
@@ -50,4 +52,16 @@ dbTablesDesc={
             ('endtime',     'INTEGER'), # datetime(as int) of end
         ]
     },
+    # this stores the per-user, per-counter, per-day pattern of usage:
+    #   time of first and last request, number of requests
+    'stat_userusagedays': {
+        'columns': [
+            ('userid',      'TEXT'),    # userID - a string
+            ('counterid',   'TEXT'),    # counter ID
+            ('date',        'INTEGER'), # a timestamp expressing an exact date
+            ('firstrequest','INTEGER'), # datetime of first request
+            ('lastrequest', 'INTEGER'), # datetime of (currently) last request
+            ('nrequests',   'INTEGER'), # number of requests received
+        ]
+    }
 }

@@ -44,6 +44,25 @@ class CounterStatusSpan(dictableObject):
     def __lt__(self,other):
         return self.starttime < other.starttime
 
+class UserUsageDay(dictableObject):
+    namedFields=[
+        'userid',
+        'counterid',
+        'date',
+        'firstrequest',
+        'lastrequest',
+        'nrequests',
+    ]
+
+    def __init__(self,**kwargs):
+        _kwargs=self.consumeKWargs(**kwargs)
+        # no additional conversions here
+        if _kwargs:
+            raise ValueError('Unknown argument(s): %s' % ', '.join(_kwargs.keys()))
+
+    def __str__(self):
+        return '<UserUsageDay[%s,%s,%s]>' % (self.userid,self.counterid,self.date)
+
 class Setting(dictableObject):
     namedFields=[
         'key',

@@ -9,9 +9,10 @@ UBQ 2 SERVER-SIDE TECH SPECS
     * an upstart job for the checkbeat
 
 - Slowness in editing counters: to investigate. After 'save counter' there's sometimes a 1-2 sec delay
-    before the ep_counters endpoint is queried. Seemingly out-of-my-code, perhaps DB related?
+    before the ep_counters endpoint is queried. Seemingly out-of-my-code,
+    perhaps DB related (i.e. race condition on transaction)?
 
-- Email alert also if back-online and within time-window (and had sent email!)
+- A date-based index for stat tables with historical data
 
 - A special system-alert table to log special events such as cannot-send-email and such
 
@@ -22,6 +23,8 @@ UBQ 2 SERVER-SIDE TECH SPECS
     * How to iterate bindings to keyup with a loop in counter editor
     * put number on bar (in the timeplot) only if bar has enough width
 
+- A multi-field primary key e.g. for the 'stat_userusagedays' table.
+
 *******
 
 - Logging system, tracking system, their plot with D3 and a smart way of archiving historical data
@@ -30,10 +33,6 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
         (userID, day, counter)    firstReq, lastReq, numReqs
             for each requestor, progressively update usage stats
-
-        (day, counter)                         startTime, endTime, number
-            for each counter and number, record the permanence
-            Being offline counts as a number (e.g. -1 or so) and is a separate status
 
         (date, counter)                         modeChange(prevmode-newmode), time
             for each counter log the pointlike off/online changes and mode setting change

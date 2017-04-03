@@ -69,8 +69,10 @@ Counter description: {counternotes}.
 
 You receive this email since your account on {servicename} has email notifications turned on and the time-window condition is currently met.'''
 
+PERFORM_USER_IDENTIFICATION=True
 # Usage tracking level: True uses cookies, False relies on User-Agent
 USE_ANONYMOUS_COOKIES=True
+COOKIE_DURATION_SECONDS=86400*365 # i.e. one year
 
 # DERIVED VARIABLES - do not edit below this line (theoretically)
 dbFullName=os.path.join(DB_DIRECTORY,DB_NAME)
