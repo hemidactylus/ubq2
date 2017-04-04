@@ -69,6 +69,24 @@ def dbGetUserUsageDay(db,userid,counterid,usagedate,keepAsDict=False):
     else:
         return UserUsageDay(**usageDayDict) if usageDayDict else None
 
+def dbGetUserUsageDays(db,counterid,usageDate=None):
+    '''
+        given a counter id and optionally a date the usage stat is
+        extracted
+    '''
+    whereClauses=[]
+    if usageDate:
+        whereClauses+=['date = %i' % usageDate]
+    #
+    return (UserUsageDay(**uud) 
+        for uud in dbRetrieveRecordsByKey(
+            db,
+            'stat_userusagedays',
+            {'counterid': counterid},
+            whereClauses=whereClauses,
+        )
+    )
+
 def dbAddUserUsageDay(db,nUserUsageDay):
     dbAddRecordToTable(db, 'stat_userusagedays', nUserUsageDay)
 

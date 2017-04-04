@@ -58,7 +58,12 @@ dbTablesDesc={
             ('value',       'INTEGER'), # counter value of this timespan
             ('starttime',   'INTEGER'), # datetime(as int) of beginning
             ('endtime',     'INTEGER'), # datetime(as int) of end
-        ]
+        ],
+        'indices': {
+            'chronological_starttime': [
+                ('starttime', 'ASC'),
+            ],
+        },
     },
     # this stores the per-user, per-counter, per-day pattern of usage:
     #   time of first and last request, number of requests
@@ -72,6 +77,11 @@ dbTablesDesc={
             ('firstrequest','INTEGER'), # datetime of first request
             ('lastrequest', 'INTEGER'), # datetime of (currently) last request
             ('nrequests',   'INTEGER'), # number of requests received
-        ]
+        ],
+        'indices': {
+            'chronological_date': [
+                ('date', 'ASC'),
+            ]
+        },
     }
 }

@@ -12,7 +12,7 @@ UBQ 2 SERVER-SIDE TECH SPECS
     before the ep_counters endpoint is queried. Seemingly out-of-my-code,
     perhaps DB related (i.e. race condition on transaction)?
 
-- A date-based index for stat tables with historical data
+- make all where-clauses in queries NOT TO encode their value in the text! (see e.g. getCounterStatusSpans)
 
 - A special system-alert table to log special events such as cannot-send-email and such
 

@@ -80,6 +80,22 @@ def dbCreateTable(db,tableName,tableDesc):
         print('[dbCreateTable] %s' % createCommand)
     cur=db.cursor()
     cur.execute(createCommand)
+    # if one or more indices are specified, create them
+    if 'indices' in tableDesc:
+        '''
+            Syntax for creating indices:
+                CREATE INDEX index_name ON table_name (column [ASC/DESC], column [ASC/DESC],...)
+        '''
+        for indName,indFieldPairs in tableDesc['indices'].items():
+            createCommand='CREATE INDEX %s ON %s ( %s );' % (
+                indName,
+                tableName,
+                ' , '.join('%s %s' % fPair for fPair in indFieldPairs)
+            )
+        if DB_DEBUG:
+            print('[dbCreateTable] %s' % createCommand)
+        cur=db.cursor()
+        cur.execute(createCommand)
 
 def dbRetrieveAllRecords(db, tableName):
     '''

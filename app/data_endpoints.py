@@ -31,7 +31,10 @@ from app import app, lm
 from config import (
     dbFullName,
 )
-from app.database.dblogging import getCounterStatusSpans
+from app.database.dblogging import (
+    getCounterStatusSpans,
+    dbGetUserUsageDays,
+)
 from app.database.dbtools import (
     dbOpenDatabase,
     dbGetSetting,
@@ -157,4 +160,45 @@ def DATA_counter_duration_data(counterid,daysback=None):
         ],
         'n': sum(durationHistogram.values()),
     }
+    return jsonify(**fullStructure)
+
+@app.route('/DATA_user_usage_data/<counterid>')
+@app.route('/DATA_user_usage_data/<counterid>/<jday>')
+@login_required
+def DATA_user_usage_data(counterid,jday=None):
+    '''
+        if no java-day provided, returns a list of the available days
+        else a list of usage users for that day
+    '''
+    db=dbOpenDatabase(dbFullName)
+    counterName=dbGetCounter(db,counterid).fullname
+    if jday:
+        reqDay=javaTimestampToTimestamp(float(jday))
+    else:
+        reqDay=None
+    #
+    userStatDays=dbGetUserUsageDays(db,counterid,reqDay)
+    if reqDay:
+        # detailed response per one day
+        fullStructure={
+            'day': jday,
+            'counterid': counterid,
+            'countername': counterName,
+            'usages': [
+                {
+                    'firstrequest': 1000*udd.firstrequest,
+                    'lastrequest': 1000*udd.lastrequest,
+                    'nrequests': udd.nrequests,
+                    'userid': udd.userid,
+                }
+                for udd in userStatDays
+            ],
+        }
+    else:
+        # a list of available days
+        fullStructure={
+            'days': sorted(set([
+                1000*udd.date for udd in userStatDays
+            ])),
+        }
     return jsonify(**fullStructure)
