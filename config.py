@@ -8,9 +8,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 WTF_CSRF_ENABLED = True
 from sensible_config import SECRET_KEY
 
-# official service name
-UBQ_SERVICE_FULLNAME='UBQ [www.salamandrina.net/ubq]'
-
 # database settings
 DB_DIRECTORY=os.path.join(basedir,'app/database')
 DB_NAME='ubq2.db'
@@ -25,6 +22,9 @@ IFRAME_EMBED_CODE='''<iframe
     seamless="seamless">
 </iframe>'''
 APP_COMPLETE_ADDRESS='http://www.salamandrina.net/ubq'
+
+# official service name
+UBQ_SERVICE_FULLNAME='UBQ [%s]' % APP_COMPLETE_ADDRESS
 
 # counter appearance settings
 NOT_FOUND_COUNTER_MESSAGE='(no info)'
@@ -49,6 +49,9 @@ MODE_ICON_MAP={
 }
 DATE_FORMAT='%b %d, %H:%M'
 
+# Debug option for redirecting email to stdout (and no email)
+REDIRECT_EMAIL_TO_STDOUT=True
+
 # Template for sending out email alerts
 EMAIL_OFFLINE_ALERT_SUBJECT='UBQ Counter {counterid} offline alert'
 EMAIL_OFFLINE_ALERT_BODY='''UBQ Alert:
@@ -68,6 +71,27 @@ Counter name: {countername}.
 Counter description: {counternotes}.
 
 You receive this email since your account on {servicename} has email notifications turned on and the time-window condition is currently met.'''
+
+# Template for sending 'illegal access' email
+EMAIL_ILLEGAL_ACCESS_SUBJECT='UBQ - Unauthorized access attempt detected!'
+EMAIL_ILLEGAL_ACCESS_BODY='''UBQ Security warning:
+an unauthorized access attempt has been received.
+
+Request details:
+
+** Headers:
+{reqHeaders}
+
+** Cookies:
+{reqCookies}
+
+** Request Url:
+{reqUrl}
+
+** Remote Address:
+{reqRemoteAddr}
+
+You receive this email since your account on {servicename} has email notifications turned on.'''
 
 PERFORM_USER_IDENTIFICATION=True
 # Usage tracking level: True uses cookies, False relies on User-Agent

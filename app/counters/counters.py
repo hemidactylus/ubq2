@@ -31,6 +31,9 @@ from config import (
     EMAIL_OFFLINE_ALERT_BODY,
     EMAIL_ONLINE_ALERT_SUBJECT,
     EMAIL_ONLINE_ALERT_BODY,
+    EMAIL_ILLEGAL_ACCESS_SUBJECT,
+    EMAIL_ILLEGAL_ACCESS_BODY,
+    REDIRECT_EMAIL_TO_STDOUT,
 )
 from app.utils.dateformats import (
     localDateFromTimestamp,
@@ -43,7 +46,28 @@ def constrain(num,min,max,outervalue):
     else:
         return outervalue
 
-def signalNumberToCounter(cKey, nNumber):
+def sendAlert(mailSubject,mailBody,recipientList,**kwargs):
+    '''
+        a wrapper to sendMail that however, for debugging purposes,
+        can be redirected to a console output by suppressing the email.
+        This is done by setting REDIRECT_EMAIL_TO_STDOUT=True
+        in the config
+    '''
+    if not REDIRECT_EMAIL_TO_STDOUT:
+        sendMail(
+            mailSubject=mailSubject,
+            mailBody=mailBody,
+            recipientList=recipientList,
+            **kwargs
+        )
+    else:
+        print('== [DEBUG SENDMAIL REDIRECTED TO STDOUT] ==')
+        print('MAIL_RECIPIENTS : %s' % ', '.join(recipientList))
+        print('MAIL_SUBJECT    : %s' % mailSubject)
+        print('MAIL_BODY       :\n%s' % mailBody)
+        print('===========================================')
+
+def signalNumberToCounter(cKey, nNumber, request):
     '''
         Handles completely the signal nNumber received with the key cKey.
         Must conform to the specifics of the update-endpoint:
@@ -54,7 +78,18 @@ def signalNumberToCounter(cKey, nNumber):
     '''
     db=dbOpenDatabase(dbFullName)
     tCounter=dbGetCounterByKey(db, cKey)
-    if tCounter is None or tCounter.mode=='o':
+    if tCounter is None:
+        # counter does not exist, i.e. unregistered key.
+        # Issue an alert with some context information
+        reqHeaders=request.headers
+        reqCookies=request.cookies
+        reqUrl=request.url
+        reqRemoteAddr=request.remote_addr
+        warnIllegalAccessAlert(db,reqHeaders,reqCookies,reqUrl,reqRemoteAddr)
+        # and return a 'unreg key' value back
+        return '2'
+    elif tCounter.mode=='o':
+        # no alert is raised, nevertheless a 'unreg key' is returned to the caller
         return '2'
     else:
         # counter exists and is in states 'a', 'p', 'm': handle updates
@@ -155,12 +190,15 @@ def checkCounterActivity(db, counterid):
             newStatus['id']=counterid
             dbUpdateCounterStatus(db,counterid,newStatus)
 
+def collectAddressees(db):
+    return [u.email for u in dbGetUsers(db) if u.subscribed]
+
 def dispatchOnlineAlert(db,counterid):
     '''
         Scans the user accounts and, for those with an active alert-email setting,
         prepares and sends the back-online email
     '''
-    addressees=[u.email for u in dbGetUsers(db) if u.subscribed]
+    addressees=collectAddressees(db)
     if addressees:
         cnt=dbGetCounter(db,counterid)
         if cnt:
@@ -175,11 +213,32 @@ def dispatchOnlineAlert(db,counterid):
                 servicename=UBQ_SERVICE_FULLNAME,
                 counternotes=cnt.notes,
             )
-            sendMail(
+            sendAlert(
                 mailSubject=subject,
                 mailBody=body,
                 recipientList=addressees,
             )
+
+def warnIllegalAccessAlert(db,reqHeaders,reqCookies,reqUrl,reqRemoteAddr):
+    '''
+        Prepares and sends a "warning: illegal access" warning by email
+        with the relevant request data attached
+    '''
+    addressees=collectAddressees(db)
+    if addressees:
+        subject=EMAIL_ILLEGAL_ACCESS_SUBJECT
+        body=EMAIL_ILLEGAL_ACCESS_BODY.format(
+            reqHeaders=reqHeaders,
+            reqCookies=reqCookies,
+            reqUrl=reqUrl,
+            reqRemoteAddr=reqRemoteAddr,
+            servicename=UBQ_SERVICE_FULLNAME,
+        )
+        sendAlert(
+            mailSubject=subject,
+            mailBody=body,
+            recipientList=addressees,
+        )
 
 def dispatchOfflineAlert(db,counterid):
     '''
@@ -201,7 +260,7 @@ def dispatchOfflineAlert(db,counterid):
                 servicename=UBQ_SERVICE_FULLNAME,
                 counternotes=cnt.notes,
             )
-            sendMail(
+            sendAlert(
                 mailSubject=subject,
                 mailBody=body,
                 recipientList=addressees,

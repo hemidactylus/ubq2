@@ -142,12 +142,12 @@ def ep_update():
     if newNumber is None or counterKey is None:
         return '3'
     else:
-        return signalNumberToCounter(counterKey, newNumber)
+        return signalNumberToCounter(counterKey, newNumber, request)
 
 @app.route('/checkbeat')
 def ep_checkbeat():
     '''
-        this is called from a heartbeat job and triggers offline-counter-checks
+        this can be called from a heartbeat job and triggers offline-counter-checks
     '''
     db=dbOpenDatabase(dbFullName)
     checkBeat(db)
