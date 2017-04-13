@@ -162,10 +162,10 @@ def DATA_counter_duration_data(counterid,daysback=None):
     }
     return jsonify(**fullStructure)
 
-@app.route('/DATA_user_usage_data/<counterid>')
-@app.route('/DATA_user_usage_data/<counterid>/<jday>')
+@app.route('/DATA_user_usage_data_per_day/<counterid>')
+@app.route('/DATA_user_usage_data_per_day/<counterid>/<jday>')
 @login_required
-def DATA_user_usage_data(counterid,jday=None):
+def DATA_user_usage_data_per_day(counterid,jday=None):
     '''
         if no java-day provided, returns a list of the available days
         else a list of usage users for that day
@@ -177,13 +177,16 @@ def DATA_user_usage_data(counterid,jday=None):
     else:
         reqDay=None
     #
-    userStatDays=dbGetUserUsageDays(db,counterid,reqDay)
+    userStatDays=list(dbGetUserUsageDays(db,counterid,reqDay))
     if reqDay:
         # detailed response per one day
+        allTimes=[1000*t for ev in userStatDays for t in [ev.firstrequest,ev.lastrequest]]
         fullStructure={
             'day': jday,
             'counterid': counterid,
             'countername': counterName,
+            'starttime': min(allTimes),
+            'endtime': max(allTimes),
             'usages': [
                 {
                     'firstrequest': 1000*udd.firstrequest,
@@ -196,9 +199,11 @@ def DATA_user_usage_data(counterid,jday=None):
         }
     else:
         # a list of available days
+        daysList=sorted(set([
+            1000*udd.date for udd in userStatDays
+        ]))
         fullStructure={
-            'days': sorted(set([
-                1000*udd.date for udd in userStatDays
-            ])),
+            'days': daysList,
+            'n': len(daysList),
         }
     return jsonify(**fullStructure)

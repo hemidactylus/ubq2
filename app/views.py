@@ -520,6 +520,20 @@ def ep_counterstats_timeplot(counterid):
         counterid=counterid,
     )
 
+@app.route('/ep_counterstats_usage_per_day/<counterid>')
+@login_required
+def ep_counterstats_usage_per_day(counterid):
+    '''
+        The page with the counter-specific per-day usage plot
+    '''
+    user=g.user
+    return render_template(
+        'ep_counterstats_usage_per_day.html',
+        user=user,
+        title='Usage statistics per day "%s"' % counterid,
+        counterid=counterid,
+    )
+
 @app.route('/counterstats_durations/<counterid>')
 @login_required
 def ep_counterstats_durations(counterid):

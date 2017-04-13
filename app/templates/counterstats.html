@@ -36,6 +36,10 @@
                 <a href="{{url_for('ep_counterstats_durations', counterid=counter.id)}}">
                   durations
                 </a>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <a href="{{url_for('ep_counterstats_usage_per_day', counterid=counter.id)}}">
+                  usage per day
+                </a>
               </td>
           </tr>
         {% endfor %}

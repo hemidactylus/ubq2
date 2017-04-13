@@ -35,6 +35,14 @@ body {
     fill: #ff0000;
 }
 
+.odduserrect {
+    fill: #0d224f;
+}
+
+.evenuserrect {
+    fill: #406abf;
+}
+
 .numberlabel {
     fill: #0d224f;
     font: 8pt sans-serif;

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="container">
+      <h3>{{ title }}</h3>
+      <p id="menu"><b>Choose the day (total: <span id="ndays"></span>)</b><select></select></p>
+      <hr>
+      <!-- Here the plot is built -->
+        <svg class="chart"></svg>
+        <script src="/static/ubq/d3/d3.min.js" charset="utf-8"></script>
+        <script>
+          var counterid="{{counterid}}";
+        </script>
+        <script>
+            var formatTime=function(tstamp){
+                var date = new Date(tstamp);
+                // Hours part from the timestamp
+                var hours = date.getHours();
+                // Minutes part from the timestamp
+                var minutes = "0" + date.getMinutes();
+                // Seconds part from the timestamp
+                var seconds = "0" + date.getSeconds();
+                // Will return time in 10:30:23 format
+                return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+            }
+
+            var valueLabel=function(d){return d.value<0?"(off)":d.value;}
+
+            var margin = {top: 20, right: 30, bottom: 40, left: 50},
+                width = 1000 - margin.left - margin.right,
+                height = 350 - margin.top - margin.bottom;
+    
+            var y = d3.scaleLinear()
+                    .range([height,0]);
+            var x = d3.scaleTime()
+                    .range([0, width]);
+            var xAxis = d3.axisBottom()
+                .scale(x)
+            var yAxis = d3.axisLeft()
+                .scale(y);
+
+            var chart = d3.select(".chart")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                // see mouse-events below
+                .attr("pointer-events", "all")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var clip = chart.append("defs").append("svg:clipPath")
+                .attr("id", "clip")
+                .append("svg:rect")
+                .attr("id", "clip-rect")
+                .attr("x", "0")
+                .attr("y", "0")
+                .attr("width", width)
+                .attr("height", height);
+            var chartBody = chart.append("g")
+                .attr("id","chartBody")
+                .attr("clip-path", "url(#clip)");
+
+            function enlargeRequest(d){
+                var MIN_REQUEST_DURATION=1000*10;
+                // d is a per-user-request-duration with firstrequest and lastrequest
+                // here we return lastrequest, delayed by a min-delay if necessary
+                return d3.max([d.firstrequest+MIN_REQUEST_DURATION,d.lastrequest]);
+            }
+
+            function formatDate(jTimestamp){
+                var a = new Date(jTimestamp);
+                var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                var year = a.getFullYear();
+                var month = months[a.getMonth()];
+                var date = a.getDate();
+                var time = month + ' ' + date + ', ' + year;
+                return time;
+            }
+
+            var xaxis=chart.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")");
+            xaxis.append("text")
+                .attr("class","axislabel")
+                .attr("x", width)
+                .attr("dx", "-10px")
+                .attr("dy", "34")
+                .style("text-anchor", "end")
+                .text("Time");
+            var yaxis=chart.append("g")
+                .attr("class", "y axis");
+            var ycaption=yaxis.append("text")
+                .attr("class","axislabel")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -20)
+                .attr("dy", "-0.71em")
+                .style("text-anchor", "end")
+                .text("Users");
+
+            var redraw=function(){
+                PLOT_GUTTER=1000*120;
+                var jday=menu.property("value");
+                if(jday!=""){
+                    d3.json("/DATA_user_usage_data_per_day/"+counterid+"/"+jday, function(error,data){
+                        // restrict the range to the time of interest (depends on data!)
+                        //var time_max=d3.min(data.usages,function(v){return v.lastrequest;});
+                        //var time_min=d3.min(data.usages,function(v){return v.firstrequest;});
+                        var time_min=data.starttime;
+                        var time_max=data.endtime;
+                        x.domain([time_min-PLOT_GUTTER,time_max+PLOT_GUTTER]);
+                        //x.domain([time_min,time_max]);
+                        y.domain([0,data.usages.length]);
+                        unitheight=y(0)-y(1);
+                        var rectasel = chartBody.selectAll("g");
+                        rectasel.remove();
+
+                        ycaption.text("Users ("+data.usages.length+")");
+
+                        // we now re-compute the d3 select to add new items
+                        rectasel=chartBody.selectAll("g").data(data.usages,function(d){return d.nrequests;});
+                        //rectasel=chartBody.selectAll("g").data(d3.sort(data.usages,function(d){return d.nrequests;}));
+
+                        rectas=rectasel
+                            .enter()
+                            .append("g")
+                            .attr("transform", function(d,i) {return "translate("+x(d.firstrequest)
+                              +","+y(i+1)+")"; } );
+
+                        rectas.append("rect")
+                            .attr("class",function(d,i){return i%2==0?"odduserrect":"evenuserrect";})
+                            .attr("width",function(d) {return x(enlargeRequest(d))-x(d.firstrequest);})
+                            .attr("height",unitheight);
+                        /*rectas.append("text")
+                            .attr("class",function(d){return d.value<0?"nonumberlabel":"numberlabel";})
+                            .attr("x", function(d){return 0.5*(x(d.end)-x(d.start));})
+                            .attr("y", 0)
+                            .attr("dy",function(d){return d.value<0?"22.0pt":(d.value<90?"-0.8pt":"9.2pt");})
+                            .style("text-anchor", "middle")
+                            .text(valueLabel);*/
+                        rectas.append("title")
+                            .text(function(d) { return formatTime(d.firstrequest)+" to "+formatTime(d.lastrequest)+" ("+d.nrequests+" requests)"; });
+                        xaxis.call(xAxis);
+                        yaxis.call(yAxis);
+                    });
+                }
+            };
+
+            // alert("Add a check to prevent useless redraws, with a var to keep track");
+            var menu = d3.select("#menu select")
+                .on("change keyup", redraw);
+
+            d3.json("/DATA_user_usage_data_per_day/"+counterid, function(error,data){
+                ndays=d3.select("#ndays");
+                menu.selectAll("option")
+                    .data(data.days)
+                    .enter().append("option")
+                    .property("value",function(d){return d;})
+                    .text(function(d) { return formatDate(d); });
+                menu.property("value",data.days[data.days.length-1]);
+                ndays.text(data.n);
+                redraw();
+            });
+        </script>
+      <!-- End of the plot -->
+    </div>
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}
