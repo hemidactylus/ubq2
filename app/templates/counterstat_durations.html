@@ -4,7 +4,10 @@
     {{ super() }}
 
     <div class="container">
-      <h3>{{ title }}</h3>
+      <h3>
+        <i class="fa fa-bar-chart fa-lg" aria-hidden="true"></i>
+        {{ title }}
+      </h3>
       <p id="menu">
         <b>Aggregate data back to</b> <select></select>
         <b>in the past (total: <span id="totalcount"></span> events).</b>

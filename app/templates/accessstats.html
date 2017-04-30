@@ -5,7 +5,7 @@
 
     <div class="container">
       <h2>
-        <i class="fa fa-line-chart fa-lg" aria-hidden="true"></i>
+        <i class="fa fa-users fa-lg" aria-hidden="true"></i>
         {{ title }}
       </h2>
       <hr>
@@ -19,11 +19,14 @@
               Counter name
             </th>
             <th class="col col-sm-2">
-              Number timeline
-            </th>
+              Stats for a day
+            </th>            
             <th class="col col-sm-2">
-              Durations distribution
-            </th>
+              Daily volumes
+            </th>            
+            <th class="col col-sm-2">
+              Recurring users
+            </th>            
           </tr>
         </thead>
         <tbody>
@@ -36,14 +39,15 @@
                 {{ counter.name }}
               </td>
               <td>
-                <a href="{{url_for('ep_counterstats_timeplot', counterid=counter.id)}}">
-                  <i class="fa fa-line-chart fa-lg" aria-hidden="true"></i>
+                <a href="{{url_for('ep_accessstats_usage_per_day', counterid=counter.id)}}">
+                  <i class="fa fa-clock-o fa-lg" aria-hidden="true"></i>
                 </a>
               </td>
               <td>
-                <a href="{{url_for('ep_counterstats_durations', counterid=counter.id)}}">
-                  <i class="fa fa-bar-chart fa-lg" aria-hidden="true"></i>
-                </a>
+                <i class="fa fa-calendar fa-lg" aria-hidden="true"></i>
+              </td>
+              <td>
+                <i class="fa fa-id-card-o fa-lg" aria-hidden="true"></i>
               </td>
           </tr>
         {% endfor %}

@@ -4,7 +4,10 @@
     {{ super() }}
 
     <div class="container">
-      <h3>{{ title }}</h3>
+      <h3>
+        <i class="fa fa-line-chart fa-lg" aria-hidden="true"></i>
+        {{ title }}
+      </h3>
       <p id="menu"><b>Choose the day (total: <span id="ndays"></span>)</b><select></select></p>
       <hr>
       <!-- Here the plot is built -->

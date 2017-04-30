@@ -520,15 +520,15 @@ def ep_counterstats_timeplot(counterid):
         counterid=counterid,
     )
 
-@app.route('/ep_counterstats_usage_per_day/<counterid>')
+@app.route('/ep_accessstats_usage_per_day/<counterid>')
 @login_required
-def ep_counterstats_usage_per_day(counterid):
+def ep_accessstats_usage_per_day(counterid):
     '''
         The page with the counter-specific per-day usage plot
     '''
     user=g.user
     return render_template(
-        'ep_counterstats_usage_per_day.html',
+        'ep_accessstats_usage_per_day.html',
         user=user,
         title='Usage statistics per day "%s"' % counterid,
         counterid=counterid,
@@ -568,6 +568,28 @@ def ep_counterstats():
         'counterstats.html',
         user=user,
         title='Number stats main menu',
+        counters=counters,
+    )
+
+@app.route('/accessstats')
+@login_required
+def ep_accessstats():
+    '''
+        analogous to counterstats, for usage/access statistics
+    '''
+    user=g.user
+    db=dbOpenDatabase(dbFullName)
+    counters=[
+        {
+            'id': cnt.id,
+            'name': cnt.fullname,
+        }
+        for cnt in sorted(dbGetCounters(db))
+    ]
+    return render_template(
+        'accessstats.html',
+        user=user,
+        title='Access stats main menu',
         counters=counters,
     )
 
