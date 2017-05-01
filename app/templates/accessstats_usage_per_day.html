@@ -153,7 +153,7 @@
             var menu = d3.select("#menu select")
                 .on("change keyup", redraw);
 
-            d3.json("/DATA_user_usage_data_per_day/"+counterid, function(error,data){
+            d3.json("DATA_user_usage_data_per_day/"+counterid, function(error,data){
                 ndays=d3.select("#ndays");
                 menu.selectAll("option")
                     .data(data.days)
