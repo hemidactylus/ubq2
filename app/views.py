@@ -520,7 +520,7 @@ def ep_counterstats_timeplot(counterid):
         counterid=counterid,
     )
 
-@app.route('/ep_accessstats_usage_per_day/<counterid>')
+@app.route('/accessstats_usage_per_day/<counterid>')
 @login_required
 def ep_accessstats_usage_per_day(counterid):
     '''

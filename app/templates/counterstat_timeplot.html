@@ -100,7 +100,7 @@
                 PLOT_GUTTER=1000*120;
                 var jday=menu.property("value");
                 if(jday!=""){
-                    d3.json("/DATA_counterstats_timeplot_data/"+counterid+"/"+jday, function(error,data){
+                    d3.json("/ubq/DATA_counterstats_timeplot_data/"+counterid+"/"+jday, function(error,data){
                         // restrict the range to the time of interest (depends on data!)
                         var time_min=d3.min(data.values.filter(
                             function(v){return v.value>=0 && v.value!=23;}
@@ -147,7 +147,7 @@
             var menu = d3.select("#menu select")
                 .on("change keyup", redraw);
 
-            d3.json("/DATA_counterstats_timeplot_days/"+counterid, function(error,data){
+            d3.json("/ubq/DATA_counterstats_timeplot_days/"+counterid, function(error,data){
                 ndays=d3.select("#ndays");
                 menu.selectAll("option")
                     .data(data.days)
