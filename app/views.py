@@ -528,7 +528,7 @@ def ep_accessstats_usage_per_day(counterid):
     '''
     user=g.user
     return render_template(
-        'ep_accessstats_usage_per_day.html',
+        'accessstats_usage_per_day.html',
         user=user,
         title='Usage statistics per day "%s"' % counterid,
         counterid=counterid,
