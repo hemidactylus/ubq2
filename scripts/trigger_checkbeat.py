@@ -3,6 +3,7 @@
 '''
 
 from time import sleep
+import sys
 
 import env
 from app.counters.counters import checkBeat
@@ -15,11 +16,12 @@ from app.database.dbtools import (
 )
 
 if __name__=='__main__':
-    db=dbOpenDatabase(dbFullName)
     while True:
         print('Checking...',end='')
+        db=dbOpenDatabase(dbFullName)
         checkbeatfrequency=int(dbGetSetting(db, 'CHECKBEAT_FREQUENCY', '10'))
         checkBeat(db)
         db.commit()
         print(' done.')
+        sys.stdout.flush()
         sleep(checkbeatfrequency)

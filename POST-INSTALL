@@ -1,0 +1,6 @@
+Steps after installlation:
+    * create trigger_checkbeat.sh and ubqTriggerCheckbeat.service in scripts/
+    * edit the properties in those files with directories, files and username/group
+    * make a symlink to the latter in /etc/systemd/system
+    * sudo systemctl start ubqTriggerCheckbeat.service
+

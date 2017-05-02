@@ -6,7 +6,6 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 - ADAPTING TO DEPLOY
     * 'update1.php' better becomes 'update1', must alter the devices!
-    * an upstart job for the checkbeat
 
 - Slowness in editing counters: to investigate. After 'save counter' there's sometimes a 1-2 sec delay
     before the ep_counters endpoint is queried. Seemingly out-of-my-code,
@@ -22,9 +21,6 @@ UBQ 2 SERVER-SIDE TECH SPECS
     * how to validate colors in the real-time counter editor
     * How to iterate bindings to keyup with a loop in counter editor
     * put number on bar (in the timeplot) only if bar has enough width
-
-    * how not to encode an URL prefix in the d3 pages? ('/ubq/...')
-        (currently either the local or the deployed is broken!)
 
 - A multi-field primary key e.g. for the 'stat_userusagedays' table.
 
@@ -73,9 +69,6 @@ Counter States Spans:
 
 
 **********
-
-
-- all email notification unified service is to be done
 
 # General notes
 
@@ -130,3 +123,6 @@ Counter States Spans:
     This has to become an upstart job
 
 * Usage stats through a cookie- and useragent-based anon ID.
+
+* system-side features: a trigger_checkbeat that periodically checks for going-offline/email-alerts,
+  as a systemd service. This must be configured upon install.

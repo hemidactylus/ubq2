@@ -4,6 +4,7 @@
 '''
 
 from datetime import datetime, timedelta
+import sys
 from time import time
 import pytz
 
@@ -54,18 +55,23 @@ def sendAlert(mailSubject,mailBody,recipientList,**kwargs):
         in the config
     '''
     if not REDIRECT_EMAIL_TO_STDOUT:
+        # log just one line anyway to stdout
+        print('[sendAlert] Issuing email with subject=<%s>' % mailSubject,end='')
+        sys.stdout.flush()
         sendMail(
             mailSubject=mailSubject,
             mailBody=mailBody,
             recipientList=recipientList,
             **kwargs
         )
+        print('[sendAlert] done')
     else:
         print('== [DEBUG SENDMAIL REDIRECTED TO STDOUT] ==')
         print('MAIL_RECIPIENTS : %s' % ', '.join(recipientList))
         print('MAIL_SUBJECT    : %s' % mailSubject)
         print('MAIL_BODY       :\n%s' % mailBody)
         print('===========================================')
+    sys.stdout.flush()
 
 def signalNumberToCounter(cKey, nNumber, request):
     '''
@@ -273,6 +279,7 @@ def isWithinAlertTime(db, timestamp):
     tzDate=localDateFromTimestamp(timestamp,dbGetSetting(db,'WORKING_TIMEZONE'))
     aStart=datetime.strptime(dbGetSetting(db,'ALERT_WINDOW_START'),'%H:%M').time()
     aEnd=datetime.strptime(dbGetSetting(db,'ALERT_WINDOW_END'),'%H:%M').time()
+    print('isWithinAlertTime: tzDate, aStart, aEnd: %s %s %s' % (tzDate,aStart,aEnd))
     return tzDate.time() >= aStart and tzDate.time() <= aEnd
 
 def checkBeat(db=None):

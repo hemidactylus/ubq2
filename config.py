@@ -50,7 +50,7 @@ MODE_ICON_MAP={
 DATE_FORMAT='%b %d, %H:%M'
 
 # Debug option for redirecting email to stdout (and no email)
-REDIRECT_EMAIL_TO_STDOUT=True
+REDIRECT_EMAIL_TO_STDOUT=False
 
 # Template for sending out email alerts
 EMAIL_OFFLINE_ALERT_SUBJECT='UBQ Counter {counterid} offline alert'
