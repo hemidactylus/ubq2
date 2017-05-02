@@ -9,15 +9,15 @@ default_settings=[
     },
     {
         'key'           : 'COUNTER_ALERT_TIMEOUT',
-        'value'         : '120',
+        'value'         : '600',
     },
     {
         'key'           : 'ALERT_WINDOW_START',
-        'value'         : '18:58',
+        'value'         : '9:20',
     },
     {
         'key'           : 'ALERT_WINDOW_END',
-        'value'         : '19:10',
+        'value'         : '11:35',
     },
     {
         'key'           : 'WORKING_TIMEZONE',
