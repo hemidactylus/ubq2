@@ -72,9 +72,11 @@
             var redraw=function(){
                 var jday=menu.property("value");
                 if(jday!=""){
-                    var reqText="/ubq/DATA_counter_duration_data/"+counterid;
+                    var reqText="to be set"
                     if(jday>0){
-                        reqText=reqText+"/"+jday;
+                        reqText="{{url_for('DATA_counter_duration_data',counterid='COUNTERID',daysback='JDAY')}}".replace('COUNTERID',counterid).replace('JDAY',jday);
+                    }else{
+                        reqText="{{url_for('DATA_counter_duration_data',counterid='COUNTERID')}}".replace('COUNTERID',counterid);
                     }
                     totevents=d3.select("#totalcount");
                     d3.json(reqText, function(error,data){
