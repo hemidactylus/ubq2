@@ -5,4 +5,6 @@ __pycache__
 sensible_config.py
 app/sendMail/mailSettings.py
 app/database/ubq2.db
-
+scripts/secret_db_values.py
+scripts/trigger_checkbeat.sh
+scripts/ubqTriggerCheckbeat.service

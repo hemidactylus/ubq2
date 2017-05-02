@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# configuration settings
+VENV_ACTIVATOR_SCRIPT="<<FULL_PATH_TO_REACH>>/.virtualenvs/ubq2/bin/activate"
+INSTALLATION_DIR="<<UBQ_INSTALLATION_ROOT_DIRECTORY>>"
+
+source ${VENV_ACTIVATOR_SCRIPT}
+
+python ${INSTALLATION_DIR}/scripts/trigger_checkbeat.py

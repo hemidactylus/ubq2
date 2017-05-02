@@ -1,0 +1,12 @@
+[Unit]
+Description=UBQ Trigger Checkbeat
+After=syslog.target
+
+[Service]
+Type=simple
+User=<<USERNAME>>
+Group=<<GROUPNAME>>
+ExecStart=<<INSTALLATION_DIR>>/scripts/trigger_checkbeat.sh
+
+[Install]
+WantedBy=multi-user.target
