@@ -15,7 +15,7 @@ reqSettings={
     'minincr'  :      1,
     'maxincr'  :     10,
     'beat_frequency': 15,
-    'url'      : 'http://localhost:5000/update1.php',
+    'url'      : 'http://localhost:5000/update1',
 }
 
 responseDesc={

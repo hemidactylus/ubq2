@@ -15,3 +15,4 @@ from app import app
 
 if __name__ == '__main__':
     WSGIServer(DebuggedApplication(app)).run()
+    #WSGIServer(app).run()

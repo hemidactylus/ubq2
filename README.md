@@ -23,6 +23,9 @@ UBQ 2 SERVER-SIDE TECH SPECS
     * How to iterate bindings to keyup with a loop in counter editor
     * put number on bar (in the timeplot) only if bar has enough width
 
+    * how not to encode an URL prefix in the d3 pages? ('/ubq/...')
+        (currently either the local or the deployed is broken!)
+
 - A multi-field primary key e.g. for the 'stat_userusagedays' table.
 
 *******
