@@ -8,7 +8,18 @@
         <i class="fa fa-clock-o fa-lg" aria-hidden="true"></i>
         {{ title }}
       </h3>
-      <p id="menu"><b>Choose the day (total: <span id="ndays"></span>)</b><select></select></p>
+      <p id="menu">
+            <span>
+                <b>Choose the day (total: <span id="ndays"></span>)</b>
+                <select></select>
+                <b>.</b>
+            </span>
+            <span>
+                 <b>Consider users with at least</b>
+                <input size="4" maxlength="5" type="text" name="min_nrequests" id="min_nrequests" value="5">
+                <b>accesses.</b>
+            </span>
+      </p>
       <hr>
       <!-- Here the plot is built -->
         <svg class="chart"></svg>
@@ -103,28 +114,40 @@
 
             var redraw=function(){
                 PLOT_GUTTER=1000*120;
-                var jday=menu.property("value");
+                var jday=menu_select.property("value");
                 if(jday!=""){
                     d3.json(
                         "{{url_for('DATA_user_usage_data_per_day',counterid='COUNTERID',jday='JDAY')}}".replace('COUNTERID',counterid).replace('JDAY',jday),
                         function(error,data){
+
+                        var min_nrequests_val=parseInt(menu_nrequests.property("value"));
+                        if(isNaN(min_nrequests_val)){
+                            min_nrequests_val=0;
+                        }
+                        // perform a user-specified minimum-number-of-request filter before data join
+                        var selUsages=data.usages.filter(function(u){return u.nrequests>=min_nrequests_val;});
+
                         // restrict the range to the time of interest (depends on data!)
-                        //var time_max=d3.min(data.usages,function(v){return v.lastrequest;});
-                        //var time_min=d3.min(data.usages,function(v){return v.firstrequest;});
-                        var time_min=data.starttime;
-                        var time_max=data.endtime;
+                        var time_min=d3.min(
+                            selUsages,
+                            function(u){return u.firstrequest;}
+                        );
+                        var time_max=d3.max(
+                            selUsages,
+                            function(u){return u.lastrequest;}
+                        );
                         x.domain([time_min-PLOT_GUTTER,time_max+PLOT_GUTTER]);
                         //x.domain([time_min,time_max]);
-                        y.domain([0,data.usages.length]);
+                        y.domain([0,selUsages.length]);
                         unitheight=y(0)-y(1);
                         var rectasel = chartBody.selectAll("g");
                         rectasel.remove();
 
-                        ycaption.text("Users ("+data.usages.length+")");
+                        ycaption.text("Users ("+selUsages.length+", total "+data.usages.length+")");
 
                         // we now re-compute the d3 select to add new items
-                        rectasel=chartBody.selectAll("g").data(data.usages,function(d){return d.nrequests;});
-                        //rectasel=chartBody.selectAll("g").data(d3.sort(data.usages,function(d){return d.nrequests;}));
+                        rectasel=chartBody.selectAll("g").data(selUsages,function(d){return d.nrequests;});
+                        //rectasel=chartBody.selectAll("g").data(data.usages,function(d){return d.nrequests;});
 
                         rectas=rectasel
                             .enter()
@@ -152,19 +175,21 @@
             };
 
             // alert("Add a check to prevent useless redraws, with a var to keep track");
-            var menu = d3.select("#menu select")
+            var menu_select = d3.select("#menu select")
+                .on("change keyup", redraw);
+            var menu_nrequests = d3.select("#menu input")
                 .on("change keyup", redraw);
 
             d3.json(
                 "{{url_for('DATA_user_usage_data_per_day',counterid='COUNTERID')}}".replace('COUNTERID',counterid),
                 function(error,data){
                 ndays=d3.select("#ndays");
-                menu.selectAll("option")
+                menu_select.selectAll("option")
                     .data(data.days)
                     .enter().append("option")
                     .property("value",function(d){return d;})
                     .text(function(d) { return formatDate(d); });
-                menu.property("value",data.days[data.days.length-1]);
+                menu_select.property("value",data.days[data.days.length-1]);
                 ndays.text(data.n);
                 redraw();
             });
