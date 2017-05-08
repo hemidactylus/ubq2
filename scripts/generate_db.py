@@ -10,6 +10,8 @@ import env
 from app.database.dbtools import (
     dbOpenDatabase,
     dbCreateTable,
+    dbRetrieveAllRecords,
+    dbDeleteRecordsByKey,
     dbAddUser,
     dbAddCounter,
     dbAddSetting,
@@ -35,37 +37,57 @@ def setRWAttributeForAll(filename):
 
 if __name__=='__main__':
     #
-    if '-s' in sys.argv[1:]:
-        # use real values if available
-        if secretValuesLoaded:
-            print('  ** Using SECRET values **')
-            target_users,target_counters=real_users,real_counters
+    qargs=sys.argv[1:]
+    tablesToRecreate=None
+    target_users,target_counters=test_users,test_counters
+    while qargs:
+        arg=qargs.pop(0)
+        if arg=='-s':
+            # use real values if available
+            if secretValuesLoaded:
+                print('  ** Using SECRET values **')
+                target_users,target_counters=real_users,real_counters
+            else:
+                print('  ** Cannot use secret values: falling back to TEST values **')
+                target_users,target_counters=test_users,test_counters
+        elif arg=='-t':
+            # a list of non-flag items will follow with the name of the tables
+            tablesToRecreate=[]
+            while qargs and qargs[0][0]!='-':
+                narg=qargs.pop(0)
+                tablesToRecreate.append(narg)
+            print('  ** Tables to recreate: %s **' % ','.join(tablesToRecreate))
         else:
-            print('  ** Cannot use secret values: falling back to TEST values **')
-            target_users,target_counters=test_users,test_counters
-    else:
-        print(' ** Using TEST values **')
-        target_users,target_counters=test_users,test_counters
+            print('  ** Unrecognised argument "%s" **' % arg)
     #
-    if os.path.isfile(dbFullName):
-        logDo(lambda: os.remove(dbFullName), '  * Deleting old file')
+    if not tablesToRecreate:
+        if os.path.isfile(dbFullName):
+            logDo(lambda: os.remove(dbFullName), '  * Deleting old file')
     #
     db=logDo(lambda: dbOpenDatabase(dbFullName), '  * Opening new DB')
     # table creation
-    print('  * Creating tables...')
-    for tName, tContents in dbTablesDesc.items():
-        retVal=logDo(lambda:dbCreateTable(db, tName, tContents),'    * Creating table "%s"' % tName)
+    if not tablesToRecreate:
+        print('  * Creating tables...')
+        for tName, tContents in dbTablesDesc.items():
+            retVal=logDo(lambda:dbCreateTable(db, tName, tContents),'    * Creating table "%s"' % tName)
 
     print('  * Populating tables...')
     adders=[dbAddUser,dbAddCounter,dbAddSetting]
     vals=[target_users,target_counters,default_settings]
-    onames=['user','counter','setting']
+    onames=['users','counters','settings']
     obs=[User,Counter,Setting]
     for adder,vals,ob,oname in zip(adders,vals,obs,onames):
-        print('    * Table "%s"' % oname)
-        for oStruct in vals:
-            o=ob(**oStruct)
-            logDo(lambda: adder(db, o), '      * %s "%s"' % (oname,o))
+        if tablesToRecreate and oname in tablesToRecreate:
+            print('    * Emptying table "%s"' % oname)
+            kname=dbTablesDesc[oname].get('primary_key',('id',0))[0][0]
+            keys=[doc[kname] for doc in dbRetrieveAllRecords(db,oname)]
+            for k in keys:
+                dbDeleteRecordsByKey(db,oname,{kname:k})
+        if not tablesToRecreate or oname in tablesToRecreate:
+            print('    * Table "%s"' % oname)
+            for oStruct in vals:
+                o=ob(**oStruct)
+                logDo(lambda: adder(db, o), '      * %s "%s"' % (oname,o))
 
     logDo(lambda: db.commit(), '  * Committing')
     logDo(lambda: db.close(), '  * Closing')
