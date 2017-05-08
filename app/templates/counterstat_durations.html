@@ -9,8 +9,13 @@
         {{ title }}
       </h3>
       <p id="menu">
-        <b>Aggregate data back to</b> <select></select>
-        <b>in the past (total: <span id="totalcount"></span> events).</b>
+        <span>
+            <b>Aggregate data back to</b> <select></select>
+            <b>in the past (total: <span id="totalcount"></span> events).</b>
+        </span>
+        <span>
+            <b><input type="checkbox" checked="checked"> Include zero duration.</b>
+        </span>
       </p>
       <hr>
       <!-- Here the plot is built -->
@@ -70,7 +75,7 @@
                 .text("Count");
 
             var redraw=function(){
-                var jday=menu.property("value");
+                var jday=menu_select.property("value");
                 if(jday!=""){
                     var reqText="to be set"
                     if(jday>0){
@@ -80,12 +85,15 @@
                     }
                     totevents=d3.select("#totalcount");
                     d3.json(reqText, function(error,data){
+
+                        var histoTrim=(menu_includezeros.property("checked")?0:1);
+                        var histoData=data.histogram.filter(function(d){return d.duration>=histoTrim;});
                         // restrict the range to the nonzero portion of histogram
-                        var histoXMin=d3.min(data.histogram,function(d){return d.duration;});
-                        var histoXMax=d3.max(data.histogram,function(d){return d.duration;});
+                        var histoXMin=d3.min(histoData,function(d){return d.duration;});
+                        var histoXMax=d3.max(histoData,function(d){return d.duration;});
                         x.domain([histoXMin-0.5,histoXMax+0.5]);
                         var barwidth=x(2)-x(1+bpadding);
-                        var histoYMax=d3.max(data.histogram,function(d){return d.count;});
+                        var histoYMax=d3.max(histoData,function(d){return d.count;});
                         y.domain([0,histoYMax*1.05]);
 
                         totevents.text(data.n);
@@ -93,7 +101,7 @@
                         var rectasel = chartBody.selectAll("g");
                         rectasel.remove();
                         // we now re-compute the d3 select to add new items
-                        rectasel=chartBody.selectAll("g").data(data.histogram);
+                        rectasel=chartBody.selectAll("g").data(histoData);
 
                         var bar=rectasel
                             .enter()
@@ -114,9 +122,10 @@
             };
 
             // alert("Add a check to prevent useless redraws, with a var to keep track");
-            var menu = d3.select("#menu select")
+            var menu_select = d3.select("#menu select")
                 .on("change keyup", redraw);
-
+            var menu_includezeros = d3.select("#menu input")
+                .on("change keyup", redraw);
             var timespans=[
                 {daysback: 1, description: "one day"},
                 {daysback: 2, description: "two days"},
@@ -130,12 +139,12 @@
             ];
 
             ndays=d3.select("#ndays");
-            menu.selectAll("option")
+            menu_select.selectAll("option")
                 .data(timespans)
                 .enter().append("option")
                 .property("value",function(d){return d.daysback;})
                 .text(function(d) { return d.description; });
-            menu.property("value","-1");
+            menu_select.property("value","-1");
             redraw();
         </script>
       <!-- End of the plot -->
