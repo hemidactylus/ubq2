@@ -164,7 +164,10 @@ def dbDeleteRecordsByKey(db, tableName, key):
 # TABLE-TIED FUNCTION SHORTCUTS
 def dbGetUser(db, username):
     userDict = dbRetrieveRecordByKey(db,'users',{'username': username})
-    return User(**userDict)
+    if userDict:
+        return User(**userDict)
+    else:
+        return None
 
 def dbAddUser(db, nUser):
     dbAddRecordToTable(db,'users',nUser.asDict())
