@@ -1,0 +1,145 @@
+'''
+    history_import.py : utility to import the number-counter stat
+    from the old 'UBQ' - by parsing the log files and their archives -
+    it goes all to table 'stat_counterstatusspans'.
+'''
+
+import os
+import sys
+from datetime import datetime
+
+import env
+
+from app.utils.cmdLineParse import cmdLineParse
+
+# settings
+importBaseDir=os.path.abspath(os.path.dirname(__file__))
+tmpDir=os.path.join(importBaseDir,'history_import_tmp')
+srcDir=os.path.join(importBaseDir,'history_import_data')
+
+def collectFiles(startDir):
+    '''
+        builds recursively a list of all filenames of the tree
+    '''
+    oList=[os.path.join(startDir,f) for f in os.listdir(startDir)]
+    return [
+        itm
+        for f in oList
+        for itm in ([f] if os.path.isfile(f) else collectFiles(f))
+    ]
+
+def isLogFile(fName):
+    '''
+        returns True if the filename (here provided with its whole path)
+        is that of a log file
+    '''
+    fTitle=os.path.split(fName)[1].lower()
+    return fTitle[-4:]=='.log' \
+        or fTitle.startswith('archived_cntlog') \
+        or fTitle[-3:]=='.gz'
+
+def extractEvents(fName,indent=2):
+    '''
+        makes a log file into a list of counterid/datetime/number
+        ready for merging, sorting and processing
+
+        Most of the lines are discarded. Need only offline-statuses and newnumber-statuses such as:
+            [ 05/05/17-09:33:18 | 1493969598 ] <EM1> nc nn 4
+            [ 05/05/17-12:14:40 | 1493979280 ] <CC1> nc lo 84
+    '''
+    entryList=[]
+    indSpacing='    '*indent
+    if fName[-3:]!='.gz':
+        # regular log file
+        print('%s[L' % indSpacing, end='')
+        for lNum,li in enumerate(open(fName).readlines()):
+            entry=parseLogEntry(li,fileName=os.path.split(fName)[1],lineNumber=lNum+1)
+            if entry:
+                entryList.append(entry)
+        print(']')
+        return entryList
+    else:
+        print('%sTO DO: %s !' % (indSpacing,os.path.split(fName)[1]))
+        return []
+
+def parseLogEntry(line,fileName='N/A',lineNumber=-1):
+    '''
+        If the line is eligible for being a log entry,
+        returns the parsed entry object, otherwise returns None
+    '''
+    REQUIRED_KEYS={'value','counterid'}
+    DISPENSABLE_KEYS={'timestamp'}
+
+    terms=list(filter(lambda a: a!='',map(str.strip,line.split(' '))))
+    tstamp=terms[:5]
+    message=terms[5:]
+    #
+    entry={}
+    # timestamp
+    if len(tstamp)==5:
+        entry['timestamp']=datetime.fromtimestamp(int(tstamp[3]))
+    # message
+    if len(message)>=4 and message[1]=='nc':
+        if message[0][0]=='<' and message[0][-1]=='>':
+            entry['counterid']=message[0][1:-1]
+        if message[2]=='nn':
+            # new regular number
+            entry['value']=int(message[3])
+        elif message[2]=='lo':
+            # new 'offliene' status
+            entry['value']=-1
+    if not ((REQUIRED_KEYS|DISPENSABLE_KEYS)-entry.keys()):
+        return entry
+    elif (entry.keys()-DISPENSABLE_KEYS):
+        print(
+            'WARNING: strange entry found [%s:%i]: %s' % (
+                fileName,
+                lineNumber,
+                str(entry),
+            )
+        )
+    else:
+        return None
+
+if __name__=='__main__':
+    usage='Usage: <command> [-sourcedir DIR] [-tmpdir DIR]'
+    optionSet={'sourcedir','tmpdir'}
+    cmdArgs,cmdOpts=cmdLineParse(sys.argv[1:])
+    if 'sourcedir' in cmdOpts:
+        if len(cmdOpts['sourcedir'])==1:
+            print(' * Setting source dir to "%s"' % cmdOpts['sourcedir'][0])
+            srcDir=cmdOpts['sourcedir'][0]
+    if 'tmpdir' in cmdOpts:
+        if len(cmdOpts['tmpdir'])==1:
+            print(' * Setting temp dir to "%s"' % cmdOpts['tmpdir'][0])
+            tmpDir=cmdOpts['tmpdir'][0]
+    if len(cmdOpts.keys()-optionSet)>0:
+        print('Unrecognized option(s): "%s"' % (','.join(cmdOpts.keys()-optionSet)))
+    if len(cmdArgs)>0:
+        print('Unrecognized command-line arguments: "%s"' % (','.join(cmdArgs)))
+
+    # initialisation
+    print('* Src dir: %s' % srcDir)
+    print('* Tmp dir: %s' % tmpDir)
+
+    # is the temp dir empty?
+    if len(os.listdir(tmpDir))>0:
+        print('** ERROR: nonempty temp dir. Aborting')
+    else:
+        # recursively collect all filenames relevant for importing
+        print('* Collecting file names ... ',end='')
+        allFiles=list(filter(isLogFile,collectFiles(srcDir)))
+        print('done: %i logfiles found.' % len(allFiles))
+        # one by one, parse them and collect all entries
+        # TEMP:
+        #allFiles=['/home/stefano/personal/programming/Python/ubq2/scripts/history_import_data/Archives/archived_cntLog_04']
+        # END TEMP
+        allEvents=[]
+        print('* Processing files ...')
+        for logFile in allFiles:
+            fTitle=os.path.split(logFile)[1]
+            print('    %s' % fTitle)
+            theseEvents=extractEvents(logFile)
+            allEvents+=theseEvents
+            print('    Done [events: %i]' % len(theseEvents))
+        print('Done processing files [total events: %i]' % len(allEvents))

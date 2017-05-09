@@ -98,6 +98,7 @@
 
             var redraw=function(){
                 PLOT_GUTTER=1000*120;
+                MIN_LABELED_DURATION=45*1000; // seconds*1000
                 var jday=menu.property("value");
                 if(jday!=""){
                     d3.json(
@@ -136,7 +137,7 @@
                             .attr("y", 0)
                             .attr("dy",function(d){return d.value<0?"22.0pt":(d.value<90?"-0.8pt":"9.2pt");})
                             .style("text-anchor", "middle")
-                            .text(valueLabel);
+                            .text(function(d){return ((d.end-d.start)>MIN_LABELED_DURATION)?valueLabel(d):""});
                         rectas.append("title")
                             .text(function(d) { return valueLabel(d)+" => "+formatTime(d.start)+" to "+formatTime(d.end); });
                         xaxis.call(xAxis);

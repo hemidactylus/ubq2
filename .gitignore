@@ -8,3 +8,5 @@ app/database/ubq2.db
 scripts/secret_db_values.py
 scripts/trigger_checkbeat.sh
 scripts/ubqTriggerCheckbeat.service
+scripts/history_import_data
+scripts/history_import_tmp/*.tmp
