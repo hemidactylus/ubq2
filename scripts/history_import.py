@@ -221,5 +221,16 @@ if __name__=='__main__':
                     **csDict
                 )
                 logCounterStatusSpan(db,newEvent)
+            # and a last event spanning up to now
+            csDict={
+                'counterid': cK,
+                'value': cLst[-1]['value'],
+                'starttime': cLst[-1]['timestamp'],
+                'endtime': time.mktime(datetime.now().timetuple()),
+            }
+            newEvent=CounterStatusSpan(
+                **csDict
+            )
+            logCounterStatusSpan(db,newEvent)
         db.commit()
         print(' done.')
