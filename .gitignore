@@ -10,3 +10,4 @@ scripts/trigger_checkbeat.sh
 scripts/ubqTriggerCheckbeat.service
 scripts/history_import_data
 scripts/history_import_tmp/*.tmp
+scripts/history_import_logs/*

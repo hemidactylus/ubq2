@@ -13,6 +13,17 @@ import subprocess
 import env
 
 from app.utils.cmdLineParse import cmdLineParse
+from config import dbFullName
+from app.database.dbtools import (
+    dbOpenDatabase,
+)
+from app.database.dblogging import (
+    logCounterStatusSpan,
+)
+from app.database.models import (
+    CounterStatusSpan,
+    CounterStatus,
+)
 
 # settings
 importBaseDir=os.path.abspath(os.path.dirname(__file__))
@@ -149,16 +160,14 @@ if __name__=='__main__':
         print('done: %i logfiles found.' % len(allFiles))
         # one by one, parse them and collect all entries
         # TEMP:
-        #allFiles=allFiles[:3]
+        # allFiles=allFiles[:5]
         # END TEMP
         allEvents=[]
         print('* Processing files ...')
         for logFile in allFiles:
             fTitle=os.path.relpath(logFile,srcDir)
-            # print('    %s' % fTitle)
             theseEvents=extractEvents(logFile,tempDir=tmpDir)
             allEvents+=theseEvents
-            # print('    Done [events: %i]' % len(theseEvents))
         print('Done processing files [total events: %i]' % len(allEvents))
         # arrange events in sorted lists, one per counter
         print('Rearranging and shuffling events ... ', end='')
@@ -193,3 +202,24 @@ if __name__=='__main__':
                     evDict[ev['timestamp']]=ev
             uniquedHistories[cK]=sorted(evDict.values(),key=lambda ev: ev['timestamp'])
         print('done (%s).' % ', '.join('%s: %i' % (cid,len(clst)) for cid,clst in uniquedHistories.items()))
+        # for all counters, a list of N elements results in N-1 full-fledged events,
+        # plus a last one covering up to the present time.
+        # If the import is done consistently (i.e. in a moment of inactivity and after having
+        # wiped the history), then no single state change is lost (except the very first).
+        print('Registering events on the history... ',end='')
+        db=dbOpenDatabase(dbFullName)
+        for cK,cLst in sortedHistories.items():
+            print('[%s] ' % cK,end='')
+            for ev1,ev2 in zip(cLst[:-1],cLst[1:]):
+                csDict={
+                    'counterid': cK,
+                    'value': ev1['value'],
+                    'starttime': ev1['timestamp'],
+                    'endtime': ev2['timestamp'],
+                }
+                newEvent=CounterStatusSpan(
+                    **csDict
+                )
+                logCounterStatusSpan(db,newEvent)
+        db.commit()
+        print(' done.')
