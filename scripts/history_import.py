@@ -19,6 +19,7 @@ from app.database.dbtools import (
 )
 from app.database.dblogging import (
     logCounterStatusSpan,
+    clearCounterStatusSpansTable,
 )
 from app.database.models import (
     CounterStatusSpan,
@@ -130,17 +131,19 @@ def parseLogEntry(line,fileName='N/A',lineNumber=-1):
         return None
 
 if __name__=='__main__':
-    usage='Usage: <command> [-sourcedir DIR] [-tmpdir DIR] [-nodump]'
-    optionSet={'sourcedir','tmpdir','dump'}
+    usage='** Usage: <command>  [-wipetables] [-sourcedir DIR] [-tmpdir DIR] [-nodump]'
+    optionSet={'sourcedir','tmpdir','dump', 'wipetables'}
     cmdArgs,cmdOpts=cmdLineParse(sys.argv[1:])
     if 'sourcedir' in cmdOpts:
         if len(cmdOpts['sourcedir'])==1:
-            print(' * Setting source dir to "%s"' % cmdOpts['sourcedir'][0])
+            print('* Setting source dir to "%s"' % cmdOpts['sourcedir'][0])
             srcDir=cmdOpts['sourcedir'][0]
     if 'tmpdir' in cmdOpts:
         if len(cmdOpts['tmpdir'])==1:
-            print(' * Setting temp dir to "%s"' % cmdOpts['tmpdir'][0])
+            print('* Setting temp dir to "%s"' % cmdOpts['tmpdir'][0])
             tmpDir=cmdOpts['tmpdir'][0]
+    if 'wipetables' in cmdOpts:
+        print('* Wiping the histories on DB before inserting')
     if len(cmdOpts.keys()-optionSet)>0:
         print('Unrecognized option(s): "%s"' % (','.join(cmdOpts.keys()-optionSet)))
     if len(cmdArgs)>0:
@@ -206,8 +209,14 @@ if __name__=='__main__':
         # plus a last one covering up to the present time.
         # If the import is done consistently (i.e. in a moment of inactivity and after having
         # wiped the history), then no single state change is lost (except the very first).
-        print('Registering events on the history... ',end='')
         db=dbOpenDatabase(dbFullName)
+        # optionally clear the table before injecting new items
+        if 'wipetables' in cmdOpts:
+            print('Clearing the previously-present history from DB... ', end='')
+            clearCounterStatusSpansTable(db)
+            print('done.')
+        #
+        print('Registering events on the history... ',end='')
         for cK,cLst in sortedHistories.items():
             print('[%s] ' % cK,end='')
             for ev1,ev2 in zip(cLst[:-1],cLst[1:]):

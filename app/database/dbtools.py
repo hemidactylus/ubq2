@@ -97,6 +97,16 @@ def dbCreateTable(db,tableName,tableDesc):
         cur=db.cursor()
         cur.execute(createCommand)
 
+def dbClearTable(db, tableName):
+    '''
+        deletes *ALL* entries from a table. Careful!
+    '''
+    cur=db.cursor()
+    deleteStatement='DELETE FROM %s' % tableName
+    if DB_DEBUG:
+        print('[dbClearTable] %s' % deleteStatement)
+    cur.execute(deleteStatement)
+
 def dbRetrieveAllRecords(db, tableName):
     '''
         returns an iterator on dicts,

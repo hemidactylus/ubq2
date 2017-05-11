@@ -11,6 +11,7 @@ from app.database.dbtools import (
     dbRetrieveRecordByKey,
     dbRetrieveAllRecords,
     dbGetSetting,
+    dbClearTable,
 )
 from app.database.models import(
     CounterStatusSpan,
@@ -25,6 +26,12 @@ def logCounterStatusSpan(db, csSpan):
         inserts a new counter-status timespan into the table
     '''
     dbAddRecordToTable(db,'stat_counterstatusspans', csSpan.asDict())
+
+def clearCounterStatusSpansTable(db):
+    '''
+        *completely* erases the contents of the status-spans table
+    '''
+    dbClearTable(db, 'stat_counterstatusspans')
 
 def getCounterStatusSpans(db, counterid=None, startTime=None, endTime=None):
     '''
