@@ -534,6 +534,22 @@ def ep_accessstats_usage_per_day(counterid):
         counterid=counterid,
     )
 
+@app.route('/ep_accessstats_daily_volumes/<counterid>')
+@login_required
+def ep_accessstats_daily_volumes(counterid):
+    '''
+        The page with the counter-specific
+        daily-volumes (n_numbers, n_accesses) plot
+    '''
+    user=g.user
+    return render_template(
+        'accessstats_daily_volumes.html',
+        user=user,
+        title='Daily volumes for "%s"' % counterid,
+        counterid=counterid,
+    )
+
+
 @app.route('/counterstats_durations/<counterid>')
 @login_required
 def ep_counterstats_durations(counterid):

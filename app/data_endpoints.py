@@ -47,6 +47,7 @@ from app.utils.dateformats import (
     stringToTimestamp,
     pastTimestamp,
     localDateFromTimestamp,
+    localDayTimestamp,
     toJavaTimestamp,
     makeJavaDay,
     javaTimestampToTimestamp,
@@ -227,12 +228,32 @@ def DATA_daily_volumes(counterid,durationthreshold='0',nrequestthreshold='0'):
     counterName=dbGetCounter(db,counterid).fullname
     # 1. retrieve, for all days, the number of numbers
     #    whose duration is >= the required cut
+    numbersPerDay={}
+    for numberEvent in getCounterStatusSpans(db,counterid):
+        if numberEvent.value>=0 and (numberEvent.endtime-numberEvent.starttime)>=dCut:
+            eventDate=localDayTimestamp(numberEvent.starttime,dbGetSetting(db,'WORKING_TIMEZONE'))
+            numbersPerDay[eventDate]=numbersPerDay.get(eventDate,0)+1
+    # 2. retrieve, for all days, the number of usages
+    #    whose nrequests is >= the required cut
     accessesPerDay={}
     for accessEntry in dbGetUserUsageDays(db,counterid):
-        print
+        if accessEntry.nrequests>=rCut:
+            accessesPerDay[accessEntry.date]=accessesPerDay.get(accessEntry.date,0)+1
     #
     fullStruct={
-        'dcut': dCut,
-        'rcut': rCut,
+        'accesses': [
+            {
+                'date': 1000.0*dateStamp,
+                'value': count,
+            }
+            for dateStamp,count in accessesPerDay.items()
+        ],
+        'numbers': [
+            {
+                'date': 1000.0*dateStamp,
+                'value': count,
+            }
+            for dateStamp,count in numbersPerDay.items()
+        ],
     }
     return jsonify(**fullStruct)
