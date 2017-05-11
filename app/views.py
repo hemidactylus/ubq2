@@ -89,7 +89,7 @@ from app.utils.dateformats import (
     makeJavaDay,
     javaTimestampToTimestamp,
 )
-from app.utils.parsing import integerOrNone
+from app.utils.parsing import integerOrDefault
 
 from app.data_endpoints import (
     DATA_counterstats_timeplot_days,
@@ -132,8 +132,8 @@ def ep_update():
         historically has NO COUNTER ID. Identification of counter
         relies on the secret-key (ugly, future fix?)
     '''
-    newNumber=integerOrNone(request.args.get('N'))
-    counterKey=integerOrNone(request.args.get('K'))
+    newNumber=integerOrDefault(request.args.get('N'))
+    counterKey=integerOrDefault(request.args.get('K'))
     # this function must return:
     #   3   if malformed request
     #   2   key is unregistered

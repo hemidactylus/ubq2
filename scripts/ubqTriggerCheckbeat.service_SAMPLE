@@ -8,6 +8,7 @@ User=<<USERNAME>>
 Group=<<GROUPNAME>>
 StandardOutput=kmsg
 StandardError=kmsg
+RestartSec=10
 WorkingDirectory=<<INSTALLATION_DIR>>/scripts
 ExecStart=<<INSTALLATION_DIR>>/scripts/trigger_checkbeat.sh
 

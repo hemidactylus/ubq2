@@ -2,7 +2,7 @@
     parsing.py : miscellaneous utilities to transform data
 '''
 
-def integerOrNone(text):
+def integerOrDefault(text, default=None):
     '''
         if it is not an integer expression, return None,
         else return the integer
@@ -10,5 +10,5 @@ def integerOrNone(text):
     try:
         qNum=int(text)
     except:
-        qNum=None
+        qNum=default
     return qNum

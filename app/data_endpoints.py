@@ -54,6 +54,9 @@ from app.utils.dateformats import (
 from app.utils.logstats import (
     eventDuration,
 )
+from app.utils.parsing import (
+    integerOrDefault,
+)
 
 @app.route('/DATA_counterstats_timeplot_days/<counterid>')
 @login_required
@@ -207,3 +210,29 @@ def DATA_user_usage_data_per_day(counterid,jday=None):
             'n': len(daysList),
         }
     return jsonify(**fullStructure)
+
+@app.route('/DATA_daily_volumes/<counterid>')
+@app.route('/DATA_daily_volumes/<counterid>/<durationthreshold>')
+@app.route('/DATA_daily_volumes/<counterid>/<durationthreshold>/<nrequestthreshold>')
+@login_required
+def DATA_daily_volumes(counterid,durationthreshold='0',nrequestthreshold='0'):
+    '''
+        Returns a time-plot for the daily count of numbers
+        and one for the daily amount-of-visitors,
+        with a threshold (duration, nrequests) applied to both
+    '''
+    dCut=integerOrDefault(durationthreshold,0)
+    rCut=integerOrDefault(nrequestthreshold,0)
+    db=dbOpenDatabase(dbFullName)
+    counterName=dbGetCounter(db,counterid).fullname
+    # 1. retrieve, for all days, the number of numbers
+    #    whose duration is >= the required cut
+    accessesPerDay={}
+    for accessEntry in dbGetUserUsageDays(db,counterid):
+        print
+    #
+    fullStruct={
+        'dcut': dCut,
+        'rcut': rCut,
+    }
+    return jsonify(**fullStruct)

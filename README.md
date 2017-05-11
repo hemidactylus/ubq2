@@ -18,9 +18,7 @@ UBQ 2 SERVER-SIDE TECH SPECS
 - svg digits
 
 - Javascript+D3
-    * how to validate colors in the real-time counter editor
     * How to iterate bindings to keyup with a loop in counter editor
-    * put number on bar (in the timeplot) only if bar has enough width
 
 - A multi-field primary key e.g. for the 'stat_userusagedays' table.
 
