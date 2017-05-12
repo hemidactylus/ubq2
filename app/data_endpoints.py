@@ -214,16 +214,16 @@ def DATA_user_usage_data_per_day(counterid,jday=None):
 
 @app.route('/DATA_daily_volumes/<counterid>')
 @app.route('/DATA_daily_volumes/<counterid>/<durationthreshold>')
-@app.route('/DATA_daily_volumes/<counterid>/<durationthreshold>/<nrequestthreshold>')
+@app.route('/DATA_daily_volumes/<counterid>/<durationthreshold>/<accessthreshold>')
 @login_required
-def DATA_daily_volumes(counterid,durationthreshold='0',nrequestthreshold='0'):
+def DATA_daily_volumes(counterid,durationthreshold='0',accessthreshold='0'):
     '''
         Returns a time-plot for the daily count of numbers
         and one for the daily amount-of-visitors,
-        with a threshold (duration, nrequests) applied to both
+        with a threshold (duration[seconds], reqtimespan[seconds]) applied to both
     '''
     dCut=integerOrDefault(durationthreshold,0)
-    rCut=integerOrDefault(nrequestthreshold,0)
+    rCut=integerOrDefault(accessthreshold,0)
     db=dbOpenDatabase(dbFullName)
     counterName=dbGetCounter(db,counterid).fullname
     # 1. retrieve, for all days, the number of numbers
@@ -237,7 +237,7 @@ def DATA_daily_volumes(counterid,durationthreshold='0',nrequestthreshold='0'):
     #    whose nrequests is >= the required cut
     accessesPerDay={}
     for accessEntry in dbGetUserUsageDays(db,counterid):
-        if accessEntry.nrequests>=rCut:
+        if (accessEntry.lastrequest-accessEntry.firstrequest)>=rCut:
             accessesPerDay[accessEntry.date]=accessesPerDay.get(accessEntry.date,0)+1
     #
     fullStruct={

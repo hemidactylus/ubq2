@@ -10,14 +10,14 @@
       </h3>
       <p id="menu">
             <span>
-                <b>Choose the day (total: <span id="ndays"></span>)</b>
-                <select></select>
-                <b>.</b>
+                 <b>Min. number duration: </b>
+                <input size="4" maxlength="5" type="text" name="durationthreshold" id="durationthreshold" value="5">
+                <b>minutes.</b>
             </span>
             <span>
-                 <b>Limit to users with at least</b>
-                <input size="4" maxlength="5" type="text" name="min_nrequests" id="min_nrequests" value="5">
-                <b>requests.</b>
+                 <b>Min. user connection: </b>
+                <input size="4" maxlength="5" type="text" name="accessthreshold" id="accessthreshold" value="10">
+                <b>minutes.</b>
             </span>
       </p>
       <hr>
@@ -39,8 +39,6 @@
                 // Will return time in 10:30:23 format
                 return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
             }
-
-            var valueLabel=function(d){return d.value<0?"(off)":d.value;}
 
             var margin = {top: 20, right: 30, bottom: 40, left: 50},
                 width = 1000 - margin.left - margin.right,
@@ -75,13 +73,6 @@
                 .attr("id","chartBody")
                 .attr("clip-path", "url(#clip)");
 
-            function enlargeRequest(d){
-                var MIN_REQUEST_DURATION=1000*10;
-                // d is a per-user-request-duration with firstrequest and lastrequest
-                // here we return lastrequest, delayed by a min-delay if necessary
-                return d3.max([d.firstrequest+MIN_REQUEST_DURATION,d.lastrequest]);
-            }
-
             function formatDate(jTimestamp){
                 var a = new Date(jTimestamp);
                 var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -113,86 +104,67 @@
                 .text("Users");
 
             var redraw=function(){
-                PLOT_GUTTER=1000*120;
-                var jday=menu_select.property("value");
-                if(jday!=""){
-                    d3.json(
-                        "{{url_for('DATA_user_usage_data_per_day',counterid='COUNTERID',jday='JDAY')}}".replace('COUNTERID',counterid).replace('JDAY',jday),
-                        function(error,data){
+                PLOT_GUTTER=1000*43200; // half a day of gutter 
+                var durationthreshold=menu_durationthreshold.property("value")*60;
+                var accessthreshold=menu_accessthreshold.property("value")*60;
+                d3.json(
+                    "{{url_for('DATA_daily_volumes',counterid='COUNTERID',durationthreshold='DURATIONTHRESHOLD',accessthreshold='ACCESSTHRESHOLD')}}"
+                        .replace('COUNTERID',counterid)
+                        .replace('DURATIONTHRESHOLD',durationthreshold)
+                        .replace('ACCESSTHRESHOLD',accessthreshold),
+                    function(error,data){
 
-                        var min_nrequests_val=parseInt(menu_nrequests.property("value"));
-                        if(isNaN(min_nrequests_val)){
-                            min_nrequests_val=0;
-                        }
-                        // perform a user-specified minimum-number-of-request filter before data join
-                        var selUsages=data.usages.filter(function(u){return u.nrequests>=min_nrequests_val;});
+                    // FOR NOW ONLY THE NUMBERS ARE LOGGED
 
-                        // restrict the range to the time of interest (depends on data!)
-                        var time_min=d3.min(
-                            selUsages,
-                            function(u){return u.firstrequest;}
-                        );
-                        var time_max=d3.max(
-                            selUsages,
-                            function(u){return u.lastrequest;}
-                        );
-                        x.domain([time_min-PLOT_GUTTER,time_max+PLOT_GUTTER]);
-                        //x.domain([time_min,time_max]);
-                        y.domain([0,selUsages.length]);
-                        unitheight=y(0)-y(1);
-                        var rectasel = chartBody.selectAll("g");
-                        rectasel.remove();
+                    // restrict the range to the time of interest (depends on data!)
+                    var time_min=d3.min(
+                        data.numbers,
+                        function(u){return u.date;}
+                    );
+                    var time_max=d3.max(
+                        data.numbers,
+                        function(u){return u.date;}
+                    );
+                    var y_max=d3.max(
+                        data.numbers,
+                        function(u){return u.value;}
+                    );
+                    x.domain([time_min-PLOT_GUTTER,time_max+PLOT_GUTTER]);
+                    y.domain([0,1+y_max]);
+                    unitheight=y(0)-y(1);
+                    var rectasel = chartBody.selectAll("g");
+                    rectasel.remove();
 
-                        ycaption.text("Users ("+selUsages.length+", total "+data.usages.length+")");
+                    ycaption.text("Count");
 
-                        // we now re-compute the d3 select to add new items
-                        rectasel=chartBody.selectAll("g").data(selUsages,function(d){return d.nrequests;});
-                        //rectasel=chartBody.selectAll("g").data(data.usages,function(d){return d.nrequests;});
+                    // we now re-compute the d3 select to add new items
+                    var numbersel=chartBody.selectAll("g").data(data.numbers,function(d){return d.date;});
 
-                        rectas=rectasel
-                            .enter()
-                            .append("g")
-                            .attr("transform", function(d,i) {return "translate("+x(d.firstrequest)
-                              +","+y(i+1)+")"; } );
+                    numbers=numbersel
+                        .enter()
+                        .append("g")
+                        .attr("transform", function(d,i) {return "translate("+x(d.date)
+                          +","+y(d.value)+")"; } );
 
-                        rectas.append("rect")
-                            .attr("class",function(d,i){return i%2==0?"odduserrect":"evenuserrect";})
-                            .attr("width",function(d) {return x(enlargeRequest(d))-x(d.firstrequest);})
-                            .attr("height",unitheight);
-                        /*rectas.append("text")
-                            .attr("class",function(d){return d.value<0?"nonumberlabel":"numberlabel";})
-                            .attr("x", function(d){return 0.5*(x(d.end)-x(d.start));})
-                            .attr("y", 0)
-                            .attr("dy",function(d){return d.value<0?"22.0pt":(d.value<90?"-0.8pt":"9.2pt");})
-                            .style("text-anchor", "middle")
-                            .text(valueLabel);*/
-                        rectas.append("title")
-                            .text(function(d) { return formatTime(d.firstrequest)+" to "+formatTime(d.lastrequest)+" ("+d.nrequests+" requests)"; });
-                        xaxis.call(xAxis);
-                        yaxis.call(yAxis);
-                    });
-                }
+                    numbers.append("circle")
+                        .attr("class","numbercurve")
+                        .attr("r",3)
+                        .attr("cx",0)
+                        .attr("cy",0);
+                    // rectas.append("title")
+                    //     .text(function(d) { return formatTime(d.firstrequest)+" to "+formatTime(d.lastrequest)+" ("+d.nrequests+" requests)"; });
+                    xaxis.call(xAxis);
+                    yaxis.call(yAxis);
+                });
             };
 
             // alert("Add a check to prevent useless redraws, with a var to keep track");
-            var menu_select = d3.select("#menu select")
+            var menu_durationthreshold = d3.select("#durationthreshold")
                 .on("change keyup", redraw);
-            var menu_nrequests = d3.select("#menu input")
+            var menu_accessthreshold = d3.select("#accessthreshold")
                 .on("change keyup", redraw);
 
-            d3.json(
-                "{{url_for('DATA_user_usage_data_per_day',counterid='COUNTERID')}}".replace('COUNTERID',counterid),
-                function(error,data){
-                ndays=d3.select("#ndays");
-                menu_select.selectAll("option")
-                    .data(data.days)
-                    .enter().append("option")
-                    .property("value",function(d){return d;})
-                    .text(function(d) { return formatDate(d); });
-                menu_select.property("value",data.days[data.days.length-1]);
-                ndays.text(data.n);
-                redraw();
-            });
+            redraw();
         </script>
       <!-- End of the plot -->
     </div>
