@@ -19,6 +19,11 @@
                 <input size="4" maxlength="5" type="text" name="accessthreshold" id="accessthreshold" value="10">
                 <b>minutes.</b>
             </span>
+            <span>
+                <b>Go back </b>
+                <input size="4" maxlength="5" type="text" name="daysback" id="daysback" value="90">
+                <b>days.</b>
+            </span>
       </p>
       <hr>
       <!-- Here the plot is built -->
@@ -72,6 +77,10 @@
             var chartBody = chart.append("g")
                 .attr("id","chartBody")
                 .attr("clip-path", "url(#clip)");
+            var chartNumbers=chartBody.append("g")
+                .attr("id","chartNumbers");
+            var chartAccesses=chartBody.append("g")
+                .attr("id","chartAccesses");
 
             function formatDate(jTimestamp){
                 var a = new Date(jTimestamp);
@@ -107,52 +116,96 @@
                 PLOT_GUTTER=1000*43200; // half a day of gutter 
                 var durationthreshold=menu_durationthreshold.property("value")*60;
                 var accessthreshold=menu_accessthreshold.property("value")*60;
+                var daysback=menu_daysback.property("value");
                 d3.json(
-                    "{{url_for('DATA_daily_volumes',counterid='COUNTERID',durationthreshold='DURATIONTHRESHOLD',accessthreshold='ACCESSTHRESHOLD')}}"
+                    "{{url_for('DATA_daily_volumes',counterid='COUNTERID',durationthreshold='DURATIONTHRESHOLD',accessthreshold='ACCESSTHRESHOLD',daysBack='DAYSBACK')}}"
                         .replace('COUNTERID',counterid)
                         .replace('DURATIONTHRESHOLD',durationthreshold)
-                        .replace('ACCESSTHRESHOLD',accessthreshold),
+                        .replace('ACCESSTHRESHOLD',accessthreshold)
+                        .replace('DAYSBACK',daysback),
                     function(error,data){
 
                     // FOR NOW ONLY THE NUMBERS ARE LOGGED
 
                     // restrict the range to the time of interest (depends on data!)
                     var time_min=d3.min(
-                        data.numbers,
-                        function(u){return u.date;}
+                        [
+                            d3.min(
+                                data.numbers,
+                                function(u){return u.date;}
+                            ),
+                            d3.min(
+                                data.accesses,
+                                function(u){return u.date;}
+                            ),
+                        ]
                     );
                     var time_max=d3.max(
-                        data.numbers,
-                        function(u){return u.date;}
+                        [
+                            d3.max(
+                                data.numbers,
+                                function(u){return u.date;}
+                            ),
+                            d3.max(
+                                data.accesses,
+                                function(u){return u.date;}
+                            ),
+                        ]
                     );
                     var y_max=d3.max(
-                        data.numbers,
-                        function(u){return u.value;}
+                        [
+                            d3.max(
+                                data.numbers,
+                                function(u){return u.value;}
+                            ),
+                            d3.max(
+                                data.accesses,
+                                function(u){return u.value;}
+                            ),
+                        ]
                     );
                     x.domain([time_min-PLOT_GUTTER,time_max+PLOT_GUTTER]);
                     y.domain([0,1+y_max]);
                     unitheight=y(0)-y(1);
-                    var rectasel = chartBody.selectAll("g");
-                    rectasel.remove();
+
+                    chartNumbers.selectAll("g").remove();
+                    chartAccesses.selectAll("g").remove();
 
                     ycaption.text("Count");
 
                     // we now re-compute the d3 select to add new items
-                    var numbersel=chartBody.selectAll("g").data(data.numbers,function(d){return d.date;});
+                    var numbersel=chartNumbers.selectAll("g").data(data.numbers,function(d){return d.date;});
+                    var accesssel=chartAccesses.selectAll("g").data(data.accesses,function(d){return d.date;});
 
                     numbers=numbersel
                         .enter()
                         .append("g")
                         .attr("transform", function(d,i) {return "translate("+x(d.date)
                           +","+y(d.value)+")"; } );
+                    accesses=accesssel
+                        .enter()
+                        .append("g")
+                        .attr("transform", function(d,i) {return "translate("+x(d.date)
+                          +","+y(d.value)+")"; } );
 
                     numbers.append("circle")
-                        .attr("class","numbercurve")
+                        //.attr("class","numbercurve")
                         .attr("r",3)
                         .attr("cx",0)
-                        .attr("cy",0);
-                    // rectas.append("title")
-                    //     .text(function(d) { return formatTime(d.firstrequest)+" to "+formatTime(d.lastrequest)+" ("+d.nrequests+" requests)"; });
+                        .attr("cy",0)
+                        .style("fill","#406abf");
+                    accesses.append("circle")
+                        //.attr("class","accesscurve")
+                        .attr("r",3)
+                        .attr("cx",0)
+                        .attr("cy",0)
+                        .style("fill","#0d224f");
+                    numbers.append("title")
+                        .text(function(d) { return formatDate(d.date)+
+                            ": "+d.value+" numbers"; });
+                    accesses.append("title")
+                        .text(function(d) { return formatDate(d.date)+
+                            ": "+d.value+" accesses"; });
                     xaxis.call(xAxis);
                     yaxis.call(yAxis);
                 });
@@ -162,6 +215,8 @@
             var menu_durationthreshold = d3.select("#durationthreshold")
                 .on("change keyup", redraw);
             var menu_accessthreshold = d3.select("#accessthreshold")
+                .on("change keyup", redraw);
+            var menu_daysback = d3.select("#daysback")
                 .on("change keyup", redraw);
 
             redraw();

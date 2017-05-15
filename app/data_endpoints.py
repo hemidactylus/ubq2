@@ -215,13 +215,19 @@ def DATA_user_usage_data_per_day(counterid,jday=None):
 @app.route('/DATA_daily_volumes/<counterid>')
 @app.route('/DATA_daily_volumes/<counterid>/<durationthreshold>')
 @app.route('/DATA_daily_volumes/<counterid>/<durationthreshold>/<accessthreshold>')
+@app.route('/DATA_daily_volumes/<counterid>/<durationthreshold>/<accessthreshold>/<daysBack>')
 @login_required
-def DATA_daily_volumes(counterid,durationthreshold='0',accessthreshold='0'):
+def DATA_daily_volumes(counterid,durationthreshold='0',accessthreshold='0',daysBack=None):
     '''
         Returns a time-plot for the daily count of numbers
         and one for the daily amount-of-visitors,
         with a threshold (duration[seconds], reqtimespan[seconds]) applied to both
     '''
+    _daysBack=integerOrDefault(daysBack,-1)
+    if daysBack is not None and _daysBack>0:
+        reqDay=pastTimestamp(_daysBack)
+    else:
+        reqDay=None
     dCut=integerOrDefault(durationthreshold,0)
     rCut=integerOrDefault(accessthreshold,0)
     db=dbOpenDatabase(dbFullName)
@@ -229,16 +235,19 @@ def DATA_daily_volumes(counterid,durationthreshold='0',accessthreshold='0'):
     # 1. retrieve, for all days, the number of numbers
     #    whose duration is >= the required cut
     numbersPerDay={}
-    for numberEvent in getCounterStatusSpans(db,counterid):
+    for numberEvent in getCounterStatusSpans(db,counterid,startTime=reqDay):
+        eventDate=localDayTimestamp(numberEvent.starttime,dbGetSetting(db,'WORKING_TIMEZONE'))
+        numbersPerDay[eventDate]=numbersPerDay.get(eventDate,0)
         if numberEvent.value>=0 and (numberEvent.endtime-numberEvent.starttime)>=dCut:
-            eventDate=localDayTimestamp(numberEvent.starttime,dbGetSetting(db,'WORKING_TIMEZONE'))
-            numbersPerDay[eventDate]=numbersPerDay.get(eventDate,0)+1
+            numbersPerDay[eventDate]=numbersPerDay[eventDate]+1
     # 2. retrieve, for all days, the number of usages
     #    whose nrequests is >= the required cut
     accessesPerDay={}
     for accessEntry in dbGetUserUsageDays(db,counterid):
-        if (accessEntry.lastrequest-accessEntry.firstrequest)>=rCut:
-            accessesPerDay[accessEntry.date]=accessesPerDay.get(accessEntry.date,0)+1
+        if reqDay is None or accessEntry.date>=reqDay:
+            accessesPerDay[accessEntry.date]=accessesPerDay.get(accessEntry.date,0)
+            if (accessEntry.lastrequest-accessEntry.firstrequest)>=rCut:
+                accessesPerDay[accessEntry.date]=accessesPerDay[accessEntry.date]+1
     #
     fullStruct={
         'accesses': [

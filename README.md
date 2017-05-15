@@ -20,6 +20,10 @@ UBQ 2 SERVER-SIDE TECH SPECS
 - Javascript+D3
     * How to iterate bindings to keyup with a loop in counter editor
 
+    * Color of curves on css for the daily usages
+    * Make the points into a line plot
+    * Add a timescale choice
+
 - A multi-field primary key e.g. for the 'stat_userusagedays' table.
 
 *******
