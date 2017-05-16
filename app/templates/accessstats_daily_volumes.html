@@ -45,11 +45,19 @@
                 return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
             }
 
+            var pluralize=function(intValue,singForm,plurForm){
+                return intValue==1?singForm:plurForm;
+            }
+
             var accessDesc = function(accessData){
-                return accessData.value+' accesses on '+formatDate(accessData.date)+'.';
+                return accessData.value+' filtered access'+
+                pluralize(accessData.value,'','es')+
+                ' on '+formatDate(accessData.date)+'.';
             }
             var numberDesc = function(numberData){
-                return numberData.value+' numbers on '+formatDate(numberData.date)+'.';
+                return numberData.value+' filtered number'+
+                pluralize(numberData.value,'','s')+
+                ' on '+formatDate(numberData.date)+'.';
             }
 
             var margin = {top: 20, right: 30, bottom: 40, left: 50},
@@ -225,6 +233,17 @@
                         .attr('stroke','#406abf')
                         .attr('stroke-width',2)
                         .attr('fill','none');
+                    // numbers, data point symbols
+                    chartNumbers.selectAll('circle')
+                        .data(data.numbers)
+                        .enter()
+                        .append('circle')
+                        .attr('cx',function(d){return x(d.date);})
+                        .attr('cy',function(d){return y(d.value);})
+                        .attr('r',3)
+                        .attr('fill','#406abf')
+                        .append('title')
+                        .text(function(d){return numberDesc(d);});
 
                     xaxis.call(xAxis);
                     yaxis.call(yAxis);
