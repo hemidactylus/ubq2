@@ -236,10 +236,11 @@ def DATA_daily_volumes(counterid,durationthreshold='0',accessthreshold='0',daysB
     #    whose duration is >= the required cut
     numbersPerDay={}
     for numberEvent in getCounterStatusSpans(db,counterid,startTime=reqDay):
-        eventDate=localDayTimestamp(numberEvent.starttime,dbGetSetting(db,'WORKING_TIMEZONE'))
-        numbersPerDay[eventDate]=numbersPerDay.get(eventDate,0)
-        if numberEvent.value>=0 and (numberEvent.endtime-numberEvent.starttime)>=dCut:
-            numbersPerDay[eventDate]=numbersPerDay[eventDate]+1
+        if reqDay is None or numberEvent.starttime>=reqDay:
+            eventDate=localDayTimestamp(numberEvent.starttime,dbGetSetting(db,'WORKING_TIMEZONE'))
+            numbersPerDay[eventDate]=numbersPerDay.get(eventDate,0)
+            if numberEvent.value>=0 and (numberEvent.endtime-numberEvent.starttime)>=dCut:
+                numbersPerDay[eventDate]=numbersPerDay[eventDate]+1
     # 2. retrieve, for all days, the number of usages
     #    whose nrequests is >= the required cut
     accessesPerDay={}
