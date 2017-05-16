@@ -45,6 +45,13 @@
                 return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
             }
 
+            var accessDesc = function(accessData){
+                return accessData.value+' accesses on '+formatDate(accessData.date)+'.';
+            }
+            var numberDesc = function(numberData){
+                return numberData.value+' numbers on '+formatDate(numberData.date)+'.';
+            }
+
             var margin = {top: 20, right: 30, bottom: 40, left: 50},
                 width = 1000 - margin.left - margin.right,
                 height = 350 - margin.top - margin.bottom;
@@ -168,44 +175,57 @@
                     y.domain([0,1+y_max]);
                     unitheight=y(0)-y(1);
 
-                    chartNumbers.selectAll("g").remove();
-                    chartAccesses.selectAll("g").remove();
+                    chartNumbers.selectAll("path").remove();
+                    chartNumbers.selectAll("circle").remove();
+                    chartAccesses.selectAll("path").remove();
+                    chartAccesses.selectAll("circle").remove();
 
                     ycaption.text("Count");
 
-                    // we now re-compute the d3 select to add new items
-                    var numbersel=chartNumbers.selectAll("g").data(data.numbers,function(d){return d.date;});
-                    var accesssel=chartAccesses.selectAll("g").data(data.accesses,function(d){return d.date;});
-
-                    numbers=numbersel
+                    // accesses, line plot
+                    var accessLine = d3.line()
+                        .x(function(d){return x(d.date);})
+                        .y(function(d){return y(d.value);});
+                    chartAccesses.append('svg:path')
+                        .attr(
+                            'd',
+                            accessLine(
+                                data.accesses.sort(
+                                    function(d1,d2){return d1.date<d2.date;}
+                                )
+                            )
+                        )
+                        .attr('stroke','#0d224f')
+                        .attr('stroke-width',2)
+                        .attr('fill','none');
+                    // accesses, data point symbols
+                    chartAccesses.selectAll('circle')
+                        .data(data.accesses)
                         .enter()
-                        .append("g")
-                        .attr("transform", function(d,i) {return "translate("+x(d.date)
-                          +","+y(d.value)+")"; } );
-                    accesses=accesssel
-                        .enter()
-                        .append("g")
-                        .attr("transform", function(d,i) {return "translate("+x(d.date)
-                          +","+y(d.value)+")"; } );
+                        .append('circle')
+                        .attr('cx',function(d){return x(d.date);})
+                        .attr('cy',function(d){return y(d.value);})
+                        .attr('r',3)
+                        .attr('fill','#0d224f')
+                        .append('title')
+                        .text(function(d){return accessDesc(d);});
 
-                    numbers.append("circle")
-                        //.attr("class","numbercurve")
-                        .attr("r",3)
-                        .attr("cx",0)
-                        .attr("cy",0)
-                        .style("fill","#406abf");
-                    accesses.append("circle")
-                        //.attr("class","accesscurve")
-                        .attr("r",3)
-                        .attr("cx",0)
-                        .attr("cy",0)
-                        .style("fill","#0d224f");
-                    numbers.append("title")
-                        .text(function(d) { return formatDate(d.date)+
-                            ": "+d.value+" numbers"; });
-                    accesses.append("title")
-                        .text(function(d) { return formatDate(d.date)+
-                            ": "+d.value+" accesses"; });
+                    var numberLine = d3.line()
+                        .x(function(d){return x(d.date);})
+                        .y(function(d){return y(d.value);});
+                    chartNumbers.append('svg:path')
+                        .attr(
+                            'd',
+                            numberLine(
+                                data.numbers.sort(
+                                    function(d1,d2){return d1.date<d2.date;}
+                                )
+                            )
+                        )
+                        .attr('stroke','#406abf')
+                        .attr('stroke-width',2)
+                        .attr('fill','none');
+
                     xaxis.call(xAxis);
                     yaxis.call(yAxis);
                 });
