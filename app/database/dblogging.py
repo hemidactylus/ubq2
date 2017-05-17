@@ -12,6 +12,7 @@ from app.database.dbtools import (
     dbRetrieveAllRecords,
     dbGetSetting,
     dbClearTable,
+    dbGetCounter,
 )
 from app.database.models import(
     CounterStatusSpan,
@@ -131,3 +132,48 @@ def logUserCounterRequest(db, userid, counterid):
         )
         dbAddUserUsageDay(db,nCntStat.asDict())
     db.commit()
+
+def logRetrieveNumberOfNumbersPerDay(db,dbTZ,counterid,durationthreshold=None,reqDay=None):
+    '''
+        a pre-built data retrieval function for
+        the historical number-of-numbers per day
+
+        A timezone is required for the date conversions
+
+        Cutoff arguments here are either None or valid date/numbers
+
+    '''
+    dCut=durationthreshold if durationthreshold is not None else 0
+    counterName=dbGetCounter(db,counterid).fullname
+    # retrieve, for all days, the number of numbers
+    # whose duration is >= the required cut
+    numbersPerDay={}
+    for numberEvent in getCounterStatusSpans(db,counterid,startTime=reqDay):
+        if reqDay is None or numberEvent.starttime>=reqDay:
+            eventDate=localDayTimestamp(numberEvent.starttime,dbTZ)
+            numbersPerDay[eventDate]=numbersPerDay.get(eventDate,0)
+            if numberEvent.value>=0 and (numberEvent.endtime-numberEvent.starttime)>=dCut:
+                numbersPerDay[eventDate]=numbersPerDay[eventDate]+1
+    return numbersPerDay
+
+def logRetrieveNumberOfAccessesPerDay(db,dbTZ,counterid,accessthreshold=None,reqDay=None):
+    '''
+        a pre-built data retrieval function for
+        the history of accesses per day
+
+        A timezone is required for the date conversions
+
+        Cutoff arguments are either None or valid date/numbers
+    '''
+    rCut=accessthreshold if accessthreshold is not None else 0
+    counterName=dbGetCounter(db,counterid).fullname
+    # retrieve, for all days, the number of usages
+    # whose nrequests is >= the required cut
+    accessesPerDay={}
+    for accessEntry in dbGetUserUsageDays(db,counterid):
+        if reqDay is None or accessEntry.date>=reqDay:
+            eventDate=localDayTimestamp(accessEntry.date,dbTZ)
+            accessesPerDay[eventDate]=accessesPerDay.get(eventDate,0)
+            if (accessEntry.lastrequest-accessEntry.firstrequest)>=rCut:
+                accessesPerDay[eventDate]=accessesPerDay[eventDate]+1
+    return accessesPerDay

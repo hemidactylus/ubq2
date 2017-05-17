@@ -34,6 +34,8 @@ from config import (
 from app.database.dblogging import (
     getCounterStatusSpans,
     dbGetUserUsageDays,
+    logRetrieveNumberOfAccessesPerDay,
+    logRetrieveNumberOfNumbersPerDay,
 )
 from app.database.dbtools import (
     dbOpenDatabase,
@@ -57,6 +59,12 @@ from app.utils.logstats import (
 )
 from app.utils.parsing import (
     integerOrDefault,
+)
+
+from app.utils.stats import (
+    groupByWeekday,
+    listToStat,
+    statOnListDict,
 )
 
 @app.route('/DATA_counterstats_timeplot_days/<counterid>')
@@ -231,24 +239,10 @@ def DATA_daily_volumes(counterid,durationthreshold='0',accessthreshold='0',daysB
     dCut=integerOrDefault(durationthreshold,0)
     rCut=integerOrDefault(accessthreshold,0)
     db=dbOpenDatabase(dbFullName)
-    counterName=dbGetCounter(db,counterid).fullname
-    # 1. retrieve, for all days, the number of numbers
-    #    whose duration is >= the required cut
-    numbersPerDay={}
-    for numberEvent in getCounterStatusSpans(db,counterid,startTime=reqDay):
-        if reqDay is None or numberEvent.starttime>=reqDay:
-            eventDate=localDayTimestamp(numberEvent.starttime,dbGetSetting(db,'WORKING_TIMEZONE'))
-            numbersPerDay[eventDate]=numbersPerDay.get(eventDate,0)
-            if numberEvent.value>=0 and (numberEvent.endtime-numberEvent.starttime)>=dCut:
-                numbersPerDay[eventDate]=numbersPerDay[eventDate]+1
-    # 2. retrieve, for all days, the number of usages
-    #    whose nrequests is >= the required cut
-    accessesPerDay={}
-    for accessEntry in dbGetUserUsageDays(db,counterid):
-        if reqDay is None or accessEntry.date>=reqDay:
-            accessesPerDay[accessEntry.date]=accessesPerDay.get(accessEntry.date,0)
-            if (accessEntry.lastrequest-accessEntry.firstrequest)>=rCut:
-                accessesPerDay[accessEntry.date]=accessesPerDay[accessEntry.date]+1
+    dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')
+    #
+    accesses=logRetrieveNumberOfAccessesPerDay(db,dbTZ,counterid,rCut,reqDay)
+    numbers=logRetrieveNumberOfNumbersPerDay(db,dbTZ,counterid,dCut,reqDay)
     #
     fullStruct={
         'accesses': [
@@ -256,14 +250,48 @@ def DATA_daily_volumes(counterid,durationthreshold='0',accessthreshold='0',daysB
                 'date': 1000.0*dateStamp,
                 'value': count,
             }
-            for dateStamp,count in accessesPerDay.items()
+            for dateStamp,count in accesses.items()
         ],
         'numbers': [
             {
                 'date': 1000.0*dateStamp,
                 'value': count,
             }
-            for dateStamp,count in numbersPerDay.items()
+            for dateStamp,count in numbers.items()
         ],
     }
     return jsonify(**fullStruct)
+
+@app.route('/DATA_weekday_volumes/<counterid>')
+@app.route('/DATA_weekday_volumes/<counterid>/<durationthreshold>')
+@app.route('/DATA_weekday_volumes/<counterid>/<durationthreshold>/<accessthreshold>')
+@app.route('/DATA_weekday_volumes/<counterid>/<durationthreshold>/<accessthreshold>/<daysBack>')
+@login_required
+def DATA_weekday_volumes(counterid,durationthreshold='0',accessthreshold='0',daysBack=None):
+    '''
+        Returns a time-plot for the weekday-count of numbers
+        and one for the weekday-count-of-visitors,
+        with same syntax as DATA_daily_volumes
+    '''
+    _daysBack=integerOrDefault(daysBack,-1)
+    if daysBack is not None and _daysBack>0:
+        reqDay=pastTimestamp(_daysBack)
+    else:
+        reqDay=None
+    dCut=integerOrDefault(durationthreshold,0)
+    rCut=integerOrDefault(accessthreshold,0)
+    db=dbOpenDatabase(dbFullName)
+    dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')
+    #
+    accesses=logRetrieveNumberOfAccessesPerDay(db,dbTZ,counterid,rCut,reqDay)
+    numbers=logRetrieveNumberOfNumbersPerDay(db,dbTZ,counterid,dCut,reqDay)
+    # regroup the numbers in lists, one per weekday
+    wNumberList=groupByWeekday(numbers,dbTZ)
+    wAccessList=groupByWeekday(accesses,dbTZ)
+    #
+    fullStruct={
+        'accesses': statOnListDict(wNumberList),
+        'numbers': statOnListDict(wAccessList),
+    }
+    return jsonify(**fullStruct)
+
