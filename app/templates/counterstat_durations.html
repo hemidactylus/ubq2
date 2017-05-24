@@ -14,7 +14,16 @@
             <b>in the past (total: <span id="totalcount"></span> events).</b>
         </span>
         <span>
-            <b><input type="checkbox" checked="checked"> Include zero duration.</b>
+            <b>
+                <input type="checkbox" checked="checked" id="zeroduration" name="zeroduration">
+                Include zero duration.
+            </b>
+        </span>
+        <span>
+            <b>
+                <input type="checkbox" checked="checked" id="excessduration" name="excessduration">
+                Include excess duration.
+            </b>
         </span>
       </p>
       <hr>
@@ -86,8 +95,11 @@
                     totevents=d3.select("#totalcount");
                     d3.json(reqText, function(error,data){
 
-                        var histoTrim=(menu_includezeros.property("checked")?0:1);
-                        var histoData=data.histogram.filter(function(d){return d.duration>=histoTrim;});
+                        var histoTrimZeros=(menu_includezeros.property("checked")?0:1);
+                        var histoTrimExcess=(menu_includeexcess.property("checked")?100:60);
+                        var histoData=data.histogram.filter(function(d){
+                            return d.duration>=histoTrimZeros & d.duration<=histoTrimExcess;
+                        });
                         // restrict the range to the nonzero portion of histogram
                         var histoXMin=d3.min(histoData,function(d){return d.duration;});
                         var histoXMax=d3.max(histoData,function(d){return d.duration;});
@@ -124,7 +136,9 @@
             // alert("Add a check to prevent useless redraws, with a var to keep track");
             var menu_select = d3.select("#menu select")
                 .on("change keyup", redraw);
-            var menu_includezeros = d3.select("#menu input")
+            var menu_includezeros = d3.select("#zeroduration")
+                .on("change keyup", redraw);
+            var menu_includeexcess = d3.select("#excessduration")
                 .on("change keyup", redraw);
             var timespans=[
                 {daysback: 1, description: "one day"},

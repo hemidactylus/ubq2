@@ -17,6 +17,15 @@ UBQ 2 SERVER-SIDE TECH SPECS
 - make all where-clauses in queries NOT TO encode their value in the text! (see e.g. getCounterStatusSpans)
 
 - A special system-alert table to log special events such as cannot-send-email and such
+    Event types:
+        cannot_send_email_alert, offline_alert, online_alert, illegal_access_alert
+    FIELDS:
+        date: int
+        type: str
+        message: str
+        counterid: str
+    INDICES:
+        date
 
 - svg digits
 

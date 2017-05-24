@@ -39,9 +39,9 @@ def getCounterStatusSpans(db, counterid=None, startTime=None, endTime=None):
         retrieves counter-status events for a given counterID or all of them
     '''
     whereClauses=[]
-    if startTime:
-        whereClauses+=['endtime > %i' % startTime]
-    if endTime:
+    if startTime is not None:
+        whereClauses+=['endtime >= %i' % startTime]
+    if endTime is not None:
         whereClauses+=['starttime < %i' % endTime]
     #
     if counterid:
@@ -77,14 +77,18 @@ def dbGetUserUsageDay(db,userid,counterid,usagedate,keepAsDict=False):
     else:
         return UserUsageDay(**usageDayDict) if usageDayDict else None
 
-def dbGetUserUsageDays(db,counterid,usageDate=None):
+def dbGetUserUsageDays(db,counterid,usageDate=None, startTime=None, endTime=None):
     '''
         given a counter id and optionally a date the usage stat is
         extracted
     '''
     whereClauses=[]
-    if usageDate:
+    if usageDate is not None:
         whereClauses+=['date = %i' % usageDate]
+    if startTime is not None:
+        whereClauses+=['date >= %i' % startTime]
+    if endTime is not None:
+        whereClauses+=['date >= %i' % startTime]
     #
     return (UserUsageDay(**uud) 
         for uud in dbRetrieveRecordsByKey(
@@ -149,11 +153,11 @@ def logRetrieveNumberOfNumbersPerDay(db,dbTZ,counterid,durationthreshold=None,re
     # whose duration is >= the required cut
     numbersPerDay={}
     for numberEvent in getCounterStatusSpans(db,counterid,startTime=reqDay):
-        if reqDay is None or numberEvent.starttime>=reqDay:
-            eventDate=localDayTimestamp(numberEvent.starttime,dbTZ)
-            numbersPerDay[eventDate]=numbersPerDay.get(eventDate,0)
-            if numberEvent.value>=0 and (numberEvent.endtime-numberEvent.starttime)>=dCut:
-                numbersPerDay[eventDate]=numbersPerDay[eventDate]+1
+        # this seems to be OK in the query, i.e. the following IF is not needed
+        eventDate=localDayTimestamp(numberEvent.starttime,dbTZ)
+        numbersPerDay[eventDate]=numbersPerDay.get(eventDate,0)
+        if numberEvent.value>=0 and (numberEvent.endtime-numberEvent.starttime)>=dCut:
+            numbersPerDay[eventDate]=numbersPerDay[eventDate]+1
     return numbersPerDay
 
 def logRetrieveNumberOfAccessesPerDay(db,dbTZ,counterid,accessthreshold=None,reqDay=None):
@@ -170,10 +174,9 @@ def logRetrieveNumberOfAccessesPerDay(db,dbTZ,counterid,accessthreshold=None,req
     # retrieve, for all days, the number of usages
     # whose nrequests is >= the required cut
     accessesPerDay={}
-    for accessEntry in dbGetUserUsageDays(db,counterid):
-        if reqDay is None or accessEntry.date>=reqDay:
-            eventDate=localDayTimestamp(accessEntry.date,dbTZ)
-            accessesPerDay[eventDate]=accessesPerDay.get(eventDate,0)
-            if (accessEntry.lastrequest-accessEntry.firstrequest)>=rCut:
-                accessesPerDay[eventDate]=accessesPerDay[eventDate]+1
+    for accessEntry in dbGetUserUsageDays(db,counterid,startTime=reqDay):
+        eventDate=localDayTimestamp(accessEntry.date,dbTZ)
+        accessesPerDay[eventDate]=accessesPerDay.get(eventDate,0)
+        if (accessEntry.lastrequest-accessEntry.firstrequest)>=rCut:
+            accessesPerDay[eventDate]=accessesPerDay[eventDate]+1
     return accessesPerDay

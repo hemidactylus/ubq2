@@ -12,21 +12,24 @@
       <table class="table table-hover">
         <thead>
           <tr>
-            <th class="col col-sm-2">
+            <th class="col col-sm-1">
               ID
             </th>
-            <th class="col col-sm-4">
+            <th class="col col-sm-3">
               Counter name
             </th>
             <th class="col col-sm-2">
               Stats for a day
-            </th>            
+            </th>
             <th class="col col-sm-2">
               Daily volumes
-            </th>            
+            </th>
+            <th class="col col-sm-2">
+              Weekly pattern
+            </th>
             <th class="col col-sm-2">
               Recurring users
-            </th>            
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -47,6 +50,12 @@
                 <a href="{{url_for('ep_accessstats_daily_volumes', counterid=counter.id)}}">
                   <i class="fa fa-calendar fa-lg" aria-hidden="true"></i>
                 </a>
+              </td>
+              <td>
+                <!-- <a href="{{url_for('ep_accessstats_daily_volumes', counterid=counter.id)}}"> -->
+                <!-- TO DO: weekly pattern endpoint and display -->
+                  <i class="fa fa-calculator fa-lg" aria-hidden="true"></i>
+                <!-- </a> -->
               </td>
               <td>
                 <i class="fa fa-id-card-o fa-lg" aria-hidden="true"></i>

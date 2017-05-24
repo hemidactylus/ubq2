@@ -10,7 +10,7 @@ from config import (
     DATE_FORMAT,
 )
 
-def pastTimestamp(nDays, baseDate=None):
+def pastTimestamp(nDays, baseDate=None, makeIntegerDay=False):
     '''
         Returns the integer timestamp (in seconds)
         of the time nDays days before the provided baseDate (=now by default).
@@ -18,7 +18,11 @@ def pastTimestamp(nDays, baseDate=None):
     '''
     if not baseDate:
         baseDate=datetime.now()
-    return mktime((baseDate-timedelta(days=nDays)).timetuple())
+    if makeIntegerDay:
+        targetDate=(baseDate-timedelta(days=nDays)).date()
+    else:
+        targetDate=(baseDate-timedelta(days=nDays))
+    return mktime(targetDate.timetuple())
 
 def localDateFromTimestamp(ts,tzonedesc):
     '''
