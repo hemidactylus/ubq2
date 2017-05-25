@@ -7,6 +7,7 @@ from app.database.models import (
     User,
     Counter,
     CounterStatus,
+    SystemAlert,
 )
 from app.database.dbschema import dbTablesDesc
 from config import DB_DEBUG
@@ -56,6 +57,16 @@ def dbUpdateRecordOnTable(db,tableName,newDict, allowPartial=False):
 def dbOpenDatabase(dbFileName):
     con = lite.connect(dbFileName)
     return con
+
+def dbDeleteTable(db,tableName):
+    '''
+        caution: this DROPS a table without further questions
+    '''
+    deleteCommand='DROP TABLE %s;' % tableName
+    if DB_DEBUG:
+        print('[dbDeleteTable] %s' % deleteCommand)
+    cur=db.cursor()
+    cur.execute(deleteCommand)
 
 def dbCreateTable(db,tableName,tableDesc):
     '''
@@ -234,6 +245,22 @@ def dbGetCounters(db, keepAsDict=False):
             for counterDict in dbRetrieveAllRecords(db,'counters')
         ]
 
+def dbGetSystemAlert(db, alertid, keepAsDict=False):
+    alertDict = dbRetrieveRecordByKey(db, 'system_alerts', {'alertid': alertid})
+    if keepAsDict:
+        return alertDict
+    else:
+        return SystemAlert(**alertDict) if alertDict else None
+
+def dbGetSystemAlerts(db, keepAsDict=False):
+    if keepAsDict:
+        return list(dbRetrieveAllRecords(db,'system_alerts'))
+    else:
+        return [
+            SystemAlert(**saDict)
+            for saDict in dbRetrieveAllRecords(db,'system_alerts')
+        ]
+
 def dbGetCounter(db, counterid, keepAsDict=False):
     counterDict = dbRetrieveRecordByKey(db, 'counters', {'id': counterid})
     if keepAsDict:
@@ -260,6 +287,9 @@ def dbUpdateCounterStatus(db, counterid, nCounterStatus):
 
 def dbAddCounterStatus(db, nCounterStatus):
     dbAddRecordToTable(db, 'counterstatuses', nCounterStatus)
+
+def dbAddSystemAlert(db, nSystemAlertDict):
+    dbAddRecordToTable(db, 'system_alerts', SystemAlert(**nSystemAlertDict).asDict())
 
 def dbUpdateCounter(db,nCounter):
     if nCounter.key in [cnt.key for cnt in dbGetCounters(db) if cnt.id!=nCounter.id]:

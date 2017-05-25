@@ -10,16 +10,21 @@ import env
 from app.database.dbtools import (
     dbOpenDatabase,
     dbCreateTable,
+    dbDeleteTable,
     dbRetrieveAllRecords,
     dbDeleteRecordsByKey,
     dbAddUser,
     dbAddCounter,
     dbAddSetting,
+    dbAddSystemAlert,
 )
 from app.database.dbschema import dbTablesDesc
 from config import dbFullName
 from app.database.models import User, Counter, Setting
-from app.database.default_db_values import default_settings
+from app.database.default_db_values import (
+    default_settings,
+    default_system_alerts,
+)
 from app.utils.interactive import ask_for_confirmation, logDo
 from test_db_values import test_users, test_counters
 try:
@@ -64,26 +69,31 @@ if __name__=='__main__':
         if os.path.isfile(dbFullName):
             logDo(lambda: os.remove(dbFullName), '  * Deleting old file')
     #
+    if tablesToRecreate is None:
+        tablesToRecreate=list(dbTablesDesc.keys())
     db=logDo(lambda: dbOpenDatabase(dbFullName), '  * Opening new DB')
     # table creation
-    if not tablesToRecreate:
-        print('  * Creating tables...')
-        for tName, tContents in dbTablesDesc.items():
-            retVal=logDo(lambda:dbCreateTable(db, tName, tContents),'    * Creating table "%s"' % tName)
+    print('  * Creating tables...')
+    for tName, tContents in filter(lambda tnd: tnd[0] in tablesToRecreate,dbTablesDesc.items()):
+        try:
+            retVal=logDo(lambda:dbDeleteTable(db, tName),'    * Deleting table "%s"' % tName)
+        except:
+            pass
+        retVal=logDo(lambda:dbCreateTable(db, tName, tContents),'    * Creating table "%s"' % tName)
 
     print('  * Populating tables...')
-    adders=[dbAddUser,dbAddCounter,dbAddSetting]
-    vals=[target_users,target_counters,default_settings]
-    onames=['users','counters','settings']
+    adders=[dbAddUser,dbAddCounter,dbAddSetting,dbAddSystemAlert]
+    vals=[target_users,target_counters,default_settings,default_system_alerts]
+    onames=['users','counters','settings','system_alerts']
     obs=[User,Counter,Setting]
     for adder,vals,ob,oname in zip(adders,vals,obs,onames):
-        if tablesToRecreate and oname in tablesToRecreate:
+        if oname in tablesToRecreate:
             print('    * Emptying table "%s"' % oname)
             kname=dbTablesDesc[oname].get('primary_key',('id',0))[0][0]
             keys=[doc[kname] for doc in dbRetrieveAllRecords(db,oname)]
             for k in keys:
                 dbDeleteRecordsByKey(db,oname,{kname:k})
-        if not tablesToRecreate or oname in tablesToRecreate:
+        if oname in tablesToRecreate:
             print('    * Table "%s"' % oname)
             for oStruct in vals:
                 o=ob(**oStruct)

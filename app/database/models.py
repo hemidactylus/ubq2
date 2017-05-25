@@ -4,6 +4,15 @@
 
 import hashlib
 
+from app.database.staticValues import (
+    alertTypeMap,
+)
+from app.utils.dateformats import (
+    localDateFromTimestamp,
+)
+
+from config import LONG_DATE_FORMAT
+
 class dictableObject():
 
     def asDict(self):
@@ -23,6 +32,43 @@ class dictableObject():
         for df in delFields:
             del _kwargs[df]
         return _kwargs
+
+class SystemAlert(dictableObject):
+    namedFields=[
+        'date',
+        'type',
+        'subject',
+        'message',
+        'counterid',
+        'alertid',
+    ]
+
+    def __init__(self,**kwargs):
+        self.alertid=None
+        _kwargs=self.consumeKWargs(**kwargs)
+        # no additional conversions here
+        if _kwargs:
+            raise ValueError('Unknown argument(s): %s' % ', '.join(_kwargs.keys()))
+
+    def __str__(self):
+        return '<SystemAlert[%s, %s]:%s>' % (self.date,self.counterid,self.subject)
+
+    def __lt__(self,other):
+        return self.date < other.date
+
+    def prettyFormat(self,dbTZ,splitMessage=False):
+        '''
+            prepares a SystemAlert into a structure ready for visualisation
+        '''
+        return {
+            'type': alertTypeMap.get(self.type,''),
+            'date': localDateFromTimestamp(self.date,dbTZ).strftime(LONG_DATE_FORMAT),
+            'subject': self.subject,
+            'message': self.message if not splitMessage else [l.strip() for l in self.message.split('\n')],
+            'counterid': self.counterid,
+            'alertid': self.alertid,
+        }
+
 
 class CounterStatusSpan(dictableObject):
     namedFields=[

@@ -60,7 +60,7 @@ dbTablesDesc={
             ('endtime',     'INTEGER'), # datetime(as int) of end
         ],
         'indices': {
-            'chronological_starttime': [
+            'stat_counterstatusspans_chronological_starttime': [
                 ('starttime', 'ASC'),
             ],
         },
@@ -79,9 +79,27 @@ dbTablesDesc={
             ('nrequests',   'INTEGER'), # number of requests received
         ],
         'indices': {
-            'chronological_date': [
+            'stat_userusagedays_chronological_date': [
                 ('date', 'ASC'),
             ]
         },
+    },
+    # here all alert dispatched as emails are stored for archiving purposes
+    'system_alerts': {
+        'primary_key': [
+            ('alertid',     'INTEGER'), # auto-incremented
+        ],
+        'columns': [
+            ('date',        'INTEGER'), # datetime of alert issuing
+            ('type',        'TEXT'),    # class of alert
+            ('subject',     'TEXT'),    # subject of the alert
+            ('message',     'TEXT'),    # body of the alert
+            ('counterid',   'TEXT'),    # ID of the counter or empty string
+        ],
+        'indices': {
+            'system_alerts_chronological_date': [
+                ('date', 'ASC'),
+            ]
+        }
     }
 }

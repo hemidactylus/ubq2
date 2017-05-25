@@ -1,16 +1,16 @@
-from flask import   (
-                        render_template,
-                        flash,
-                        redirect,
-                        session,
-                        url_for,
-                        request,
-                        g,
-                        abort,
-                        escape,
-                        make_response,
-                        jsonify,
-                    )
+from flask import (
+    render_template,
+    flash,
+    redirect,
+    session,
+    url_for,
+    request,
+    g,
+    abort,
+    escape,
+    make_response,
+    jsonify,
+)
 from flask_login import  (
     login_user,
     logout_user,
@@ -57,6 +57,8 @@ from app.database.dbtools import (
     dbGetCounter,
     dbGetCounterStatus,
     dbAddCounter,
+    dbGetSystemAlerts,
+    dbGetSystemAlert,
     dbUpdateCounter,
     dbDeleteCounter,
     dbGetSetting,
@@ -253,6 +255,44 @@ def ep_showcounter(counterid):
     else:
         # not a recognised counter
         abort(404)
+
+@app.route('/system_alerts')
+@app.route('/system_alerts/<count>')
+@login_required
+def ep_system_alerts(count=None):
+    '''
+        A simple query to retrieve [the latest] system alerts and view them as a basic list
+    '''
+    user=g.user
+    db=dbOpenDatabase(dbFullName)
+    dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')
+    alerts=sorted(dbGetSystemAlerts(db),reverse=True)
+    if count is not None:
+        alerts=alerts[:integerOrDefault(count,10)]
+    #
+    print(','.join(map(str,alerts)))
+    return render_template(
+        'system_alerts.html',
+        user=user,
+        alerts=[sA.prettyFormat(dbTZ) for sA in alerts],
+        cutlist=count,
+    )
+
+@app.route('/display_alert/<alertid>')
+@login_required
+def ep_display_alert(alertid):
+    '''
+        A simple query to retrieve a given system alert and display it
+    '''
+    user=g.user
+    db=dbOpenDatabase(dbFullName)
+    dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')
+    alert=dbGetSystemAlert(db,alertid=integerOrDefault(alertid))
+    return render_template(
+        'show_alert.html',
+        user=user,
+        alert=alert.prettyFormat(dbTZ,splitMessage=True),
+    )
 
 @app.route('/counters')
 def ep_counters():

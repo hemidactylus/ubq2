@@ -48,9 +48,10 @@ MODE_ICON_MAP={
     'p': 'fa-key',
 }
 DATE_FORMAT='%b %d, %H:%M'
+LONG_DATE_FORMAT='%b %d, %Y - %H:%M:%S'
 
 # Debug option for redirecting email to stdout (and no email)
-REDIRECT_EMAIL_TO_STDOUT=False
+REDIRECT_EMAIL_TO_STDOUT=True
 
 # Template for sending out email alerts
 EMAIL_OFFLINE_ALERT_SUBJECT='UBQ Counter {counterid} offline alert'

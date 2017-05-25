@@ -15,12 +15,14 @@ from app.database.dbtools import (
     dbUpdateCounterStatus,
     dbGetCounterStatus,
     dbAddCounterStatus,
+    dbAddSystemAlert,
     dbGetSetting,
     dbGetCounter,
     dbGetUsers,
 )
 from app.database.models import (
     CounterStatusSpan,
+    SystemAlert,
 )
 from app.database.dblogging import (
     logCounterStatusSpan,
@@ -38,6 +40,7 @@ from config import (
 )
 from app.utils.dateformats import (
     localDateFromTimestamp,
+    pastTimestamp,
 )
 from app.sendMail.sendMail import sendMail
 
@@ -47,31 +50,54 @@ def constrain(num,min,max,outervalue):
     else:
         return outervalue
 
-def sendAlert(mailSubject,mailBody,recipientList,**kwargs):
+def sendAlert(db,mailSubject,mailBody,recipientList,alertType='general',counterid='',**kwargs):
     '''
         a wrapper to sendMail that however, for debugging purposes,
         can be redirected to a console output by suppressing the email.
         This is done by setting REDIRECT_EMAIL_TO_STDOUT=True
         in the config
+
+        Additionally, all events are also logged to a dedicated 'system_alerts' table
     '''
-    if not REDIRECT_EMAIL_TO_STDOUT:
-        # log just one line anyway to stdout
-        print('[sendAlert] Issuing email with subject=<%s>' % mailSubject,end='')
-        sys.stdout.flush()
-        sendMail(
-            mailSubject=mailSubject,
-            mailBody=mailBody,
-            recipientList=recipientList,
-            **kwargs
-        )
-        print('[sendAlert] done')
-    else:
-        print('== [DEBUG SENDMAIL REDIRECTED TO STDOUT] ==')
-        print('MAIL_RECIPIENTS : %s' % ', '.join(recipientList))
-        print('MAIL_SUBJECT    : %s' % mailSubject)
-        print('MAIL_BODY       :\n%s' % mailBody)
-        print('===========================================')
-    sys.stdout.flush()
+    # log the email that is about to be send
+    dbAddSystemAlert(db,{
+        'date': pastTimestamp(0), # now
+        'type': alertType,
+        'message': mailBody,
+        'counterid': counterid,
+        'subject': mailSubject,
+    })
+    db.commit()
+    # send email alert
+    try:
+        if not REDIRECT_EMAIL_TO_STDOUT:
+            # log just one line anyway to stdout
+            print('[sendAlert] Issuing email with subject=<%s>' % mailSubject,end='')
+            sys.stdout.flush()
+            sendMail(
+                mailSubject=mailSubject,
+                mailBody=mailBody,
+                recipientList=recipientList,
+                **kwargs
+            )
+            print('[sendAlert] done')
+        else:
+            print('== [DEBUG SENDMAIL REDIRECTED TO STDOUT] ==')
+            print('MAIL_RECIPIENTS : %s' % ', '.join(recipientList))
+            print('MAIL_SUBJECT    : %s' % mailSubject)
+            print('MAIL_BODY       :\n%s' % mailBody)
+            print('===========================================')
+            sys.stdout.flush()
+    except:
+        # log the failed email sending
+        dbAddSystemAlert(db,{
+            'date': pastTimestamp(0), # now
+            'type': 'cannot_send_email_alert',
+            'message': mailBody,
+            'counterid': counterid,
+            'subject': mailSubject,
+        })
+        db.commit()
 
 def signalNumberToCounter(cKey, nNumber, request):
     '''
@@ -220,9 +246,12 @@ def dispatchOnlineAlert(db,counterid):
                 counternotes=cnt.notes,
             )
             sendAlert(
+                db,
                 mailSubject=subject,
                 mailBody=body,
                 recipientList=addressees,
+                counterid=counterid,
+                alertType='online_alert',
             )
 
 def warnIllegalAccessAlert(db,reqHeaders,reqCookies,reqUrl,reqRemoteAddr):
@@ -241,9 +270,12 @@ def warnIllegalAccessAlert(db,reqHeaders,reqCookies,reqUrl,reqRemoteAddr):
             servicename=UBQ_SERVICE_FULLNAME,
         )
         sendAlert(
+            db,
             mailSubject=subject,
             mailBody=body,
             recipientList=addressees,
+            counterid='',
+            alertType='illegal_access_alert',
         )
 
 def dispatchOfflineAlert(db,counterid):
@@ -267,9 +299,12 @@ def dispatchOfflineAlert(db,counterid):
                 counternotes=cnt.notes,
             )
             sendAlert(
+                db,
                 mailSubject=subject,
                 mailBody=body,
                 recipientList=addressees,
+                counterid=counterid,
+                alertType='offline_alert',
             )
 
 def isWithinAlertTime(db, timestamp):

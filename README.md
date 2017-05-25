@@ -16,24 +16,11 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 - make all where-clauses in queries NOT TO encode their value in the text! (see e.g. getCounterStatusSpans)
 
-- A special system-alert table to log special events such as cannot-send-email and such
-    Event types:
-        cannot_send_email_alert, offline_alert, online_alert, illegal_access_alert
-    FIELDS:
-        date: int
-        type: str
-        message: str
-        counterid: str
-    INDICES:
-        date
-
 - svg digits
 
 - Javascript+D3
     * How to iterate bindings to keyup with a loop in counter editor
     * Color of curves on css for the daily usages
-
-- A multi-field primary key e.g. for the 'stat_userusagedays' table.
 
 *******
 
@@ -113,7 +100,7 @@ Counter States Spans:
         - counter operation hours/days
         - counter's right to be in the digest
 
-    - must provide an email-sending interface e.g. for alerts
+    - must provide an email-sending interface e.g. for alerts / an alert table for historical or failovers
     
     - must have cron-based log analysis and stats
     - must have cron-based offline checks

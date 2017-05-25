@@ -32,3 +32,5 @@ default_settings=[
         'value'         : '18000',
     },
 ]
+
+default_system_alerts=[]
