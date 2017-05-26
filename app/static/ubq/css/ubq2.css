@@ -31,6 +31,18 @@ body {
     fill: #0d224f;
 }
 
+.accessrect {
+    fill: #406abf;
+}
+
+.accessrecterrorbar {
+    fill: #0d224f;
+}
+
+.numberrecterrorbar {
+    fill: #406abf;
+}
+
 .nonumberrect {
     fill: #ff0000;
 }
@@ -65,4 +77,9 @@ body {
 .axis .axislabel {
     fill: #0d224f;
     font: 14pt sans-serif;
+}
+
+.messagebody {
+  margin-left: 50px;
+  font-style: italic;
 }

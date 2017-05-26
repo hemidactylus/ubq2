@@ -39,11 +39,11 @@
         </b>
       </p>
       <p>
-        <i>
+        <div class="messagebody">
           {% for line in alert.message %}
-            <div>{{ line | safe }}</div>
+            <div>{{ line }}</div>
           {% endfor %}
-        </i>
+        </div>
       </p>
       <hr>
       <a href="{{ url_for('ep_system_alerts',count=10) }}">

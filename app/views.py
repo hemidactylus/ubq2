@@ -574,6 +574,20 @@ def ep_accessstats_usage_per_day(counterid):
         counterid=counterid,
     )
 
+@app.route('/accessstats_weekly_patterns/<counterid>')
+@login_required
+def ep_accessstats_weekly_patterns(counterid):
+    '''
+        The page with the counter-specific per-day usage plot
+    '''
+    user=g.user
+    return render_template(
+        'accessstats_weekly_patterns.html',
+        user=user,
+        title='Usage weekly patterns for "%s"' % counterid,
+        counterid=counterid,
+    )
+
 @app.route('/ep_accessstats_daily_volumes/<counterid>')
 @login_required
 def ep_accessstats_daily_volumes(counterid):

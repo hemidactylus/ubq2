@@ -290,8 +290,8 @@ def DATA_weekday_volumes(counterid,durationthreshold='0',accessthreshold='0',day
     wAccessList=groupByWeekday(accesses,dbTZ)
     #
     fullStruct={
-        'accesses': statOnListDict(wNumberList),
-        'numbers': statOnListDict(wAccessList),
+        'accesses': statOnListDict(wAccessList),
+        'numbers': statOnListDict(wNumberList),
     }
     return jsonify(**fullStruct)
 

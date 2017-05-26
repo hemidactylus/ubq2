@@ -49,6 +49,10 @@
                 return intValue==1?singForm:plurForm;
             }
 
+            var fixInteger = function(strVal){
+                return parseInt(strVal)
+            }
+
             var accessDesc = function(accessData){
                 return accessData.value+' filtered access'+
                 pluralize(accessData.value,'','es')+
@@ -129,9 +133,9 @@
 
             var redraw=function(){
                 PLOT_GUTTER=1000*43200; // half a day of gutter 
-                var durationthreshold=menu_durationthreshold.property("value")*60;
-                var accessthreshold=menu_accessthreshold.property("value")*60;
-                var daysback=menu_daysback.property("value");
+                var durationthreshold=fixInteger(menu_durationthreshold.property("value")*60);
+                var accessthreshold=fixInteger(menu_accessthreshold.property("value")*60);
+                var daysback=fixInteger(menu_daysback.property("value"));
                 d3.json(
                     "{{url_for('DATA_daily_volumes',counterid='COUNTERID',durationthreshold='DURATIONTHRESHOLD',accessthreshold='ACCESSTHRESHOLD',daysBack='DAYSBACK')}}"
                         .replace('COUNTERID',counterid)
@@ -139,8 +143,6 @@
                         .replace('ACCESSTHRESHOLD',accessthreshold)
                         .replace('DAYSBACK',daysback),
                     function(error,data){
-
-                    // FOR NOW ONLY THE NUMBERS ARE LOGGED
 
                     // restrict the range to the time of interest (depends on data!)
                     var time_min=d3.min(

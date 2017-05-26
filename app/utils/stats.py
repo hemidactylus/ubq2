@@ -18,32 +18,36 @@ def groupByWeekday(numberTimelineDict,dbTZ):
         wDict[localDateFromTimestamp(dt,dbTZ).weekday()].append(nb)
     return wDict
 
-def listToStat(lst):
+def listToStat(lst, baseDict):
     '''
         makes a list of numbers into a 'stat' object
-        with 'avg' / 'std' if possible
+        always with 'avg' and 'std' and a number of additional
+        provided fields
     '''
     if len(lst)==0:
-        return {}
+        retDict={'avg': 0, 'std': 0}
     elif len(lst)==1:
-        return {'avg': lst[0]}
+        retDict={'avg': lst[0], 'std': 0}
     else:
         # real stats
         _n=1.0*len(lst)
         secMom=sum(k*k for k in lst)/_n
         firstMom=sum(lst)/_n
-        return {
+        retDict={
             'avg': firstMom,
             'std': (secMom-firstMom**2)**0.5,
         }
+    retDict.update(baseDict)
+    return retDict
 
 def statOnListDict(ldict):
     '''
         takes a dict of k -> [n1,n2...]
-        and makes it into a k -> {'avg': X, 'std': X},
+        and makes it into a list of 'weekday-stat-objects',
+        i.e. items of the form {'day': 0-6, 'avg': xxx, 'std': yyy}
         handling one- or zero-element lists gracefully
     '''
-    return {
-        k: listToStat(v)
+    return [
+        listToStat(v,{'day':k})
         for k,v in ldict.items()
-    }
+    ]

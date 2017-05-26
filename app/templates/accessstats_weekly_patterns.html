@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="container">
+      <h3>
+        <i class="fa fa-calculator fa-lg" aria-hidden="true"></i>
+        {{ title }}
+      </h3>
+      <p id="menu">
+            <span>
+                 <b>Min. number duration: </b>
+                <input size="4" maxlength="5" type="text" name="durationthreshold" id="durationthreshold" value="5">
+                <b>minutes.</b>
+            </span>
+            <span>
+                 <b>Min. user connection: </b>
+                <input size="4" maxlength="5" type="text" name="accessthreshold" id="accessthreshold" value="10">
+                <b>minutes.</b>
+            </span>
+            <span>
+                <b>Go back </b>
+                <input size="4" maxlength="5" type="text" name="daysback" id="daysback" value="90">
+                <b>days.</b>
+            </span>
+      </p>
+      <hr>
+      <!-- Here the plot is built -->
+        <svg class="chart"></svg>
+        <script src="/static/ubq/d3/d3.min.js" charset="utf-8"></script>
+        <script>
+          var counterid="{{counterid}}";
+        </script>
+        <script>
+            var formatTime=function(tstamp){
+                var date = new Date(tstamp);
+                // Hours part from the timestamp
+                var hours = date.getHours();
+                // Minutes part from the timestamp
+                var minutes = "0" + date.getMinutes();
+                // Seconds part from the timestamp
+                var seconds = "0" + date.getSeconds();
+                // Will return time in 10:30:23 format
+                return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+            }
+
+            var weekdayNames=[
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday',
+                'Saturday',
+                'Sunday',
+            ];
+
+            var itemWeeklyDesc = function(d, itemName){
+                return itemName + ' on '+weekdayNames[d.day]+
+                    ': '+d.avg.toFixed(2)+'('+d.std.toFixed(2)+') daily counts.';
+            }
+
+            var accessWeeklyDesc = function(d) {return itemWeeklyDesc(d, 'Accesses');}
+            var numberWeeklyDesc = function(d) {return itemWeeklyDesc(d, 'Numbers');}
+
+            var fixInteger = function(strVal){
+                return parseInt(strVal)
+            }
+
+            var margin = {top: 20, right: 30, bottom: 40, left: 80},
+                width = 1000 - margin.left - margin.right,
+                height = 350 - margin.top - margin.bottom;
+    
+            var x = d3.scaleLinear()
+                    .range([0,width]);
+            var y = d3.scaleLinear()
+                    .range([0, height])
+                    .domain([0,7]);
+            var BAR_GUTTER=0.1;
+            var ERROR_BAR_FRACTION=0.12;
+            var DAY_GUTTER=0.14
+            var barHeight=y(0.5*(1-BAR_GUTTER)-DAY_GUTTER)-y(0);
+            var barOuterHeight=y(0.5*(1-DAY_GUTTER))-y(0);
+            var barErrorBarHeight=ERROR_BAR_FRACTION*barHeight;
+            var halfwayBarOffset=0.5*(1-BAR_GUTTER-DAY_GUTTER);
+            var xAxis = d3.axisBottom()
+                .scale(x);
+            var yAxis = d3.axisLeft()
+                .scale(y)
+                .tickValues(d3.range(0+halfwayBarOffset,7+halfwayBarOffset,1.0))
+                .tickFormat(function(val){return weekdayNames[val-halfwayBarOffset];});
+
+            var chart = d3.select(".chart")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                // see mouse-events below
+                .attr("pointer-events", "all")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var clip = chart.append("defs").append("svg:clipPath")
+                .attr("id", "clip")
+                .append("svg:rect")
+                .attr("id", "clip-rect")
+                .attr("x", "0")
+                .attr("y", "0")
+                .attr("width", width)
+                .attr("height", height);
+            var chartBody = chart.append("g")
+                .attr("id","chartBody")
+                .attr("clip-path", "url(#clip)");
+            var chartAccesses=chartBody.append("g")
+                 .attr("id","chartAccesses");
+            var chartNumbers=chartBody.append("g")
+                .attr("id","chartNumbers");
+
+            var xaxis=chart.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")");
+            xaxis.append("text")
+                .attr("class","axislabel")
+                .attr("x", width)
+                .attr("dx", "-10px")
+                .attr("dy", "34")
+                .style("text-anchor", "end")
+                .text("Counts");
+            var yaxis=chart.append("g")
+                .attr("class", "y axis");
+            var ycaption=yaxis.append("text")
+                .attr("class","axislabel")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -20)
+                .attr("dy", "-0.71em")
+                .style("text-anchor", "end");
+
+            var redraw=function(){
+                var durationthreshold=fixInteger(menu_durationthreshold.property("value")*60);
+                var accessthreshold=fixInteger(menu_accessthreshold.property("value")*60);
+                var daysback=fixInteger(menu_daysback.property("value"));
+                d3.json(
+                    "{{url_for('DATA_weekday_volumes',counterid='COUNTERID',durationthreshold='DURATIONTHRESHOLD',accessthreshold='ACCESSTHRESHOLD',daysBack='DAYSBACK')}}"
+                        .replace('COUNTERID',counterid)
+                        .replace('DURATIONTHRESHOLD',durationthreshold)
+                        .replace('ACCESSTHRESHOLD',accessthreshold)
+                        .replace('DAYSBACK',daysback),
+                    function(error,data){
+
+                    // find the global maximum counts+devstd for both series
+                    var bar_max=d3.max(
+                        [
+                            d3.max(
+                                data.accesses,
+                                function(u){return u.avg+u.std;}
+                            ),
+                            d3.max(
+                                data.numbers,
+                                function(u){return u.avg+u.std;}
+                            ),
+                        ]
+                    );
+
+                    x.domain([0,bar_max]);
+
+                    var accessbarsel=chartAccesses.selectAll('g');
+                    accessbarsel.remove();
+                    var numberbarsel=chartNumbers.selectAll('g');
+                    numberbarsel.remove();
+
+                    // HERE THE BARS ARE DRAWN for both series
+                    var accessbars=chartAccesses.selectAll('g').data(data.accesses)
+                        .enter()
+                        .append('g')
+                        .attr('transform', function(d){
+                            return 'translate(0,'+y(d.day)+')';
+                        });
+                    accessbars.append('rect')
+                        .attr('class','accessrect')
+                        .attr('height',barHeight)
+                        .attr('width',function(d){return x(d.avg);})
+                        .append('title')
+                        .text(accessWeeklyDesc);
+                    accessbars.append('rect')
+                        .attr('transform', function(d){
+                            return 'translate('+x(d.avg-d.std)+','+(0.5*(barHeight-barErrorBarHeight))+')';
+                        })
+                        .attr('class','accessrecterrorbar')
+                        .attr('height',barErrorBarHeight)
+                        .attr('width',function(d){return x(2*d.std);})
+                        .append('title')
+                        .text(accessWeeklyDesc);
+
+                    var numberbars=chartNumbers.selectAll('g').data(data.numbers)
+                        .enter()
+                        .append('g')
+                        .attr('transform', function(d){
+                            return 'translate(0,'+(y(d.day)+barOuterHeight)+')';
+                        });
+                    numberbars.append('rect')
+                        .attr('class','numberrect')
+                        .attr('height',barHeight)
+                        .attr('width',function(d){return x(d.avg);})
+                        .append('title')
+                        .text(numberWeeklyDesc);
+                    numberbars.append('rect')
+                        .attr('transform', function(d){
+                            return 'translate('+x(d.avg-d.std)+','+(0.5*(barHeight-barErrorBarHeight))+')';
+                        })
+                        .attr('class','numberrecterrorbar')
+                        .attr('height',barErrorBarHeight)
+                        .attr('width',function(d){return x(2*d.std);})
+                        .append('title')
+                        .text(numberWeeklyDesc);
+
+                    xaxis.call(xAxis);
+                    yaxis.call(yAxis);
+                });
+            };
+
+            // alert("Add a check to prevent useless redraws, with a var to keep track");
+            var menu_durationthreshold = d3.select("#durationthreshold")
+                .on("change keyup", redraw);
+            var menu_accessthreshold = d3.select("#accessthreshold")
+                .on("change keyup", redraw);
+            var menu_daysback = d3.select("#daysback")
+                .on("change keyup", redraw);
+
+            redraw();
+        </script>
+      <!-- End of the plot -->
+    </div>
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}
