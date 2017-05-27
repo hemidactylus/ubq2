@@ -15,7 +15,7 @@
                 <b>.</b>
             </span>
             <span>
-                 <b>Limit to users with at least</b>
+                 <b>Limit to viewers with at least</b>
                 <input size="4" maxlength="5" type="text" name="min_nrequests" id="min_nrequests" value="5">
                 <b>requests.</b>
             </span>
@@ -110,7 +110,7 @@
                 .attr("y", -20)
                 .attr("dy", "-0.71em")
                 .style("text-anchor", "end")
-                .text("Users");
+                .text("Viewers");
 
             var redraw=function(){
                 PLOT_GUTTER=1000*120;
@@ -143,7 +143,7 @@
                         var rectasel = chartBody.selectAll("g");
                         rectasel.remove();
 
-                        ycaption.text("Users ("+selUsages.length+", total "+data.usages.length+")");
+                        ycaption.text("Viewers ("+selUsages.length+", total "+data.usages.length+")");
 
                         // we now re-compute the d3 select to add new items
                         rectasel=chartBody.selectAll("g").data(selUsages,function(d){return d.nrequests;});

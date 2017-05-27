@@ -82,4 +82,5 @@ body {
 .messagebody {
   margin-left: 50px;
   font-style: italic;
+  font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
 }

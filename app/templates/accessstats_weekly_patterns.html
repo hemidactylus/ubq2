@@ -15,7 +15,7 @@
                 <b>minutes.</b>
             </span>
             <span>
-                 <b>Min. user connection: </b>
+                 <b>Min. viewer connection: </b>
                 <input size="4" maxlength="5" type="text" name="accessthreshold" id="accessthreshold" value="10">
                 <b>minutes.</b>
             </span>
@@ -88,7 +88,7 @@
             var yAxis = d3.axisLeft()
                 .scale(y)
                 .tickValues(d3.range(0+halfwayBarOffset,7+halfwayBarOffset,1.0))
-                .tickFormat(function(val){return weekdayNames[val-halfwayBarOffset];});
+                .tickFormat(function(val){return weekdayNames[Math.floor(val)];});
 
             var chart = d3.select(".chart")
                 .attr("width", width + margin.left + margin.right)

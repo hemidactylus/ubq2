@@ -4,6 +4,9 @@
 
 from time import time
 
+from config import (
+    dbFullName,
+)
 from app.database.dbtools import (
     dbAddRecordToTable,
     dbUpdateRecordOnTable,
@@ -13,6 +16,8 @@ from app.database.dbtools import (
     dbGetSetting,
     dbClearTable,
     dbGetCounter,
+    dbOpenDatabase,
+    dbGetSetting,
 )
 from app.database.models import(
     CounterStatusSpan,
@@ -20,6 +25,10 @@ from app.database.models import(
 )
 from app.utils.dateformats import (
     localDayTimestamp,
+    pastTimestamp,
+)
+from app.utils.parsing import (
+    integerOrDefault,
 )
 
 def logCounterStatusSpan(db, csSpan):
@@ -180,3 +189,27 @@ def logRetrieveNumberOfAccessesPerDay(db,dbTZ,counterid,accessthreshold=None,req
         if (accessEntry.lastrequest-accessEntry.firstrequest)>=rCut:
             accessesPerDay[eventDate]=accessesPerDay[eventDate]+1
     return accessesPerDay
+
+def logNumbersUsageFetch(counterid,durationthreshold='0',accessthreshold='0',daysBack=None):
+    '''
+        packs some of the param-parsing and querying logic
+        for the two number/accesses base queries into a single
+        call used by several 'usage stats' endpoints
+    '''
+    _daysBack=integerOrDefault(daysBack,-1)
+    if daysBack is not None and _daysBack>0:
+        reqDay=pastTimestamp(_daysBack)
+    else:
+        reqDay=None
+    dCut=integerOrDefault(durationthreshold,0)
+    rCut=integerOrDefault(accessthreshold,0)
+    db=dbOpenDatabase(dbFullName)
+    dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')
+    #
+    accesses=logRetrieveNumberOfAccessesPerDay(db,dbTZ,counterid,rCut,reqDay)
+    numbers=logRetrieveNumberOfNumbersPerDay(db,dbTZ,counterid,dCut,reqDay)
+    #
+    return {
+        'accesses': accesses,
+        'numbers': numbers,
+    }

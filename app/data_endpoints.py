@@ -36,6 +36,7 @@ from app.database.dblogging import (
     dbGetUserUsageDays,
     logRetrieveNumberOfAccessesPerDay,
     logRetrieveNumberOfNumbersPerDay,
+    logNumbersUsageFetch,
 )
 from app.database.dbtools import (
     dbOpenDatabase,
@@ -231,18 +232,9 @@ def DATA_daily_volumes(counterid,durationthreshold='0',accessthreshold='0',daysB
         and one for the daily amount-of-visitors,
         with a threshold (duration[seconds], reqtimespan[seconds]) applied to both
     '''
-    _daysBack=integerOrDefault(daysBack,-1)
-    if daysBack is not None and _daysBack>0:
-        reqDay=pastTimestamp(_daysBack)
-    else:
-        reqDay=None
-    dCut=integerOrDefault(durationthreshold,0)
-    rCut=integerOrDefault(accessthreshold,0)
-    db=dbOpenDatabase(dbFullName)
-    dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')
-    #
-    accesses=logRetrieveNumberOfAccessesPerDay(db,dbTZ,counterid,rCut,reqDay)
-    numbers=logRetrieveNumberOfNumbersPerDay(db,dbTZ,counterid,dCut,reqDay)
+    acc_num=logNumbersUsageFetch(counterid,durationthreshold,accessthreshold,daysBack)
+    accesses=acc_num['accesses']
+    numbers=acc_num['numbers']
     #
     fullStruct={
         'accesses': [
@@ -269,23 +261,16 @@ def DATA_daily_volumes(counterid,durationthreshold='0',accessthreshold='0',daysB
 @login_required
 def DATA_weekday_volumes(counterid,durationthreshold='0',accessthreshold='0',daysBack=None):
     '''
-        Returns a time-plot for the weekday-count of numbers
-        and one for the weekday-count-of-visitors,
-        with same syntax as DATA_daily_volumes
+        Returns a double-bar-chart: for the weekday-count of numbers
+        and one for the weekday-count-of-visitors.
+        Call pattern has the same syntax as DATA_daily_volumes
     '''
-    _daysBack=integerOrDefault(daysBack,-1)
-    if daysBack is not None and _daysBack>0:
-        reqDay=pastTimestamp(_daysBack)
-    else:
-        reqDay=None
-    dCut=integerOrDefault(durationthreshold,0)
-    rCut=integerOrDefault(accessthreshold,0)
+    acc_num=logNumbersUsageFetch(counterid,durationthreshold,accessthreshold,daysBack)
+    accesses=acc_num['accesses']
+    numbers=acc_num['numbers']
+    # regroup the numbers in lists, one per weekday
     db=dbOpenDatabase(dbFullName)
     dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')
-    #
-    accesses=logRetrieveNumberOfAccessesPerDay(db,dbTZ,counterid,rCut,reqDay)
-    numbers=logRetrieveNumberOfNumbersPerDay(db,dbTZ,counterid,dCut,reqDay)
-    # regroup the numbers in lists, one per weekday
     wNumberList=groupByWeekday(numbers,dbTZ)
     wAccessList=groupByWeekday(accesses,dbTZ)
     #
@@ -295,3 +280,18 @@ def DATA_weekday_volumes(counterid,durationthreshold='0',accessthreshold='0',day
     }
     return jsonify(**fullStruct)
 
+@app.route('/DATA_recurring_users/<counterid>')
+@app.route('/DATA_recurring_users/<counterid>/<durationthreshold>')
+@app.route('/DATA_recurring_users/<counterid>/<durationthreshold>/<accessthreshold>')
+@app.route('/DATA_recurring_users/<counterid>/<durationthreshold>/<accessthreshold>/<daysBack>')
+@login_required
+def DATA_recurring_users(counterid,durationthreshold='0',accessthreshold='0',daysBack=None):
+    '''
+        Returns a double-bar-chart: for the weekday-count of numbers
+        and one for the weekday-count-of-visitors.
+        Call pattern has the same syntax as DATA_daily_volumes
+    '''
+    acc_num=logNumbersUsageFetch(counterid,durationthreshold,accessthreshold,daysBack)
+    accesses=acc_num['accesses']
+    numbers=acc_num['numbers']
+    return jsonify({'a': accesses})
