@@ -37,6 +37,7 @@ from app.database.dblogging import (
     logRetrieveNumberOfAccessesPerDay,
     logRetrieveNumberOfNumbersPerDay,
     logNumbersUsageFetch,
+    logRetrieveAccessesPerUser,
 )
 from app.database.dbtools import (
     dbOpenDatabase,
@@ -284,14 +285,15 @@ def DATA_weekday_volumes(counterid,durationthreshold='0',accessthreshold='0',day
 @app.route('/DATA_recurring_users/<counterid>/<durationthreshold>')
 @app.route('/DATA_recurring_users/<counterid>/<durationthreshold>/<accessthreshold>')
 @app.route('/DATA_recurring_users/<counterid>/<durationthreshold>/<accessthreshold>/<daysBack>')
+@app.route('/DATA_recurring_users/<counterid>/<durationthreshold>/<accessthreshold>/<daysBack>/<minDaysCut>')
 @login_required
-def DATA_recurring_users(counterid,durationthreshold='0',accessthreshold='0',daysBack=None):
+def DATA_recurring_users(counterid,durationthreshold='0',accessthreshold='0',daysBack=None,minDaysCut='0'):
     '''
         Returns a double-bar-chart: for the weekday-count of numbers
         and one for the weekday-count-of-visitors.
         Call pattern has the same syntax as DATA_daily_volumes
     '''
-    acc_num=logNumbersUsageFetch(counterid,durationthreshold,accessthreshold,daysBack)
-    accesses=acc_num['accesses']
-    numbers=acc_num['numbers']
-    return jsonify({'a': accesses})
+    db=dbOpenDatabase(dbFullName)
+    dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')
+    accessesPerUser=logRetrieveAccessesPerUser(db,dbTZ,counterid,accessthreshold,daysBack,minDaysCut)
+    return jsonify(accessesPerUser)

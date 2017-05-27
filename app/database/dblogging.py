@@ -157,7 +157,6 @@ def logRetrieveNumberOfNumbersPerDay(db,dbTZ,counterid,durationthreshold=None,re
 
     '''
     dCut=durationthreshold if durationthreshold is not None else 0
-    counterName=dbGetCounter(db,counterid).fullname
     # retrieve, for all days, the number of numbers
     # whose duration is >= the required cut
     numbersPerDay={}
@@ -179,7 +178,6 @@ def logRetrieveNumberOfAccessesPerDay(db,dbTZ,counterid,accessthreshold=None,req
         Cutoff arguments are either None or valid date/numbers
     '''
     rCut=accessthreshold if accessthreshold is not None else 0
-    counterName=dbGetCounter(db,counterid).fullname
     # retrieve, for all days, the number of usages
     # whose nrequests is >= the required cut
     accessesPerDay={}
@@ -212,4 +210,42 @@ def logNumbersUsageFetch(counterid,durationthreshold='0',accessthreshold='0',day
     return {
         'accesses': accesses,
         'numbers': numbers,
+    }
+
+def logRetrieveAccessesPerUser(db,dbTZ,counterid,accessthreshold=None,daysBack=None,minDaysCut=None):
+    '''
+        a pre-built data retrieval function for
+        the days-per-user statistics ('recurring users')
+
+        A timezone is required for the date conversions
+
+        Cutoff arguments are either None or valid date/numbers
+    '''
+    _daysBack=integerOrDefault(daysBack,-1)
+    if daysBack is not None and _daysBack>0:
+        reqDay=pastTimestamp(_daysBack)
+    else:
+        reqDay=None
+    rCut=integerOrDefault(accessthreshold,0)
+    mdCut=integerOrDefault(minDaysCut,0)
+    # collect all usages passing the filter
+    # as time-ordered lists per each occurring user
+    accessesPerUser={}
+    for accessEntry in dbGetUserUsageDays(db,counterid,startTime=reqDay):
+        eventDate=localDayTimestamp(accessEntry.date,dbTZ)
+        if (accessEntry.lastrequest-accessEntry.firstrequest)>=rCut:
+            userId=accessEntry.userid
+            accessObject={
+                'date': accessEntry.date,
+                'nrequests': accessEntry.nrequests,
+                'firstrequest': accessEntry.firstrequest,
+                'lastrequest': accessEntry.lastrequest,
+            }
+            accessesPerUser[userId]=accessesPerUser.get(userId,[])+[accessObject]
+    # anonymize and sort the per-user list
+    userToIndex={uid: uind for uind,uid in enumerate(accessesPerUser.keys())}
+    return {
+        userToIndex[uid]: sorted(ulist, key=lambda aObj: aObj['date'])
+        for uid,ulist in accessesPerUser.items()
+        if len(ulist)>=mdCut
     }
