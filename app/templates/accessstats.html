@@ -15,20 +15,23 @@
             <th class="col col-sm-1">
               ID
             </th>
-            <th class="col col-sm-3">
+            <th class="col col-sm-6">
               Counter name
             </th>
-            <th class="col col-sm-2">
-              Stats for a day
+            <th class="col col-sm-1">
+              Per day
             </th>
-            <th class="col col-sm-2">
-              Daily volumes
+            <th class="col col-sm-1">
+              Volumes
             </th>
-            <th class="col col-sm-2">
-              Weekly pattern
+            <th class="col col-sm-1">
+              Weekly
             </th>
-            <th class="col col-sm-2">
-              Recurring viewers
+            <th class="col col-sm-1">
+              Recurring
+            </th>
+            <th class="col col-sm-1">
+              Frequent
             </th>
           </tr>
         </thead>
@@ -57,7 +60,14 @@
                 </a>
               </td>
               <td>
-                <i class="fa fa-id-card-o fa-lg" aria-hidden="true"></i>
+                <a href="{{url_for('ep_accessstats_recurring_users', counterid=counter.id)}}">
+                  <i class="fa fa-braille fa-lg" aria-hidden="true"></i>
+                </a>
+              </td>
+              <td>
+                <!-- <a href="{{url_for('ep_accessstats_recurring_users', counterid=counter.id)}}"> -->
+                  <i class="fa fa-id-card-o fa-lg" aria-hidden="true"></i>
+                <!-- </a> -->
               </td>
           </tr>
         {% endfor %}

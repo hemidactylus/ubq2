@@ -282,16 +282,15 @@ def DATA_weekday_volumes(counterid,durationthreshold='0',accessthreshold='0',day
     return jsonify(**fullStruct)
 
 @app.route('/DATA_recurring_users/<counterid>')
-@app.route('/DATA_recurring_users/<counterid>/<durationthreshold>')
-@app.route('/DATA_recurring_users/<counterid>/<durationthreshold>/<accessthreshold>')
-@app.route('/DATA_recurring_users/<counterid>/<durationthreshold>/<accessthreshold>/<daysBack>')
-@app.route('/DATA_recurring_users/<counterid>/<durationthreshold>/<accessthreshold>/<daysBack>/<minDaysCut>')
+@app.route('/DATA_recurring_users/<counterid>/<accessthreshold>')
+@app.route('/DATA_recurring_users/<counterid>/<accessthreshold>/<daysBack>')
+@app.route('/DATA_recurring_users/<counterid>/<accessthreshold>/<daysBack>/<minDaysCut>')
 @login_required
-def DATA_recurring_users(counterid,durationthreshold='0',accessthreshold='0',daysBack=None,minDaysCut='0'):
+def DATA_recurring_users(counterid,accessthreshold='0',daysBack=None,minDaysCut='0'):
     '''
         Returns a double-bar-chart: for the weekday-count of numbers
         and one for the weekday-count-of-visitors.
-        Call pattern has the same syntax as DATA_daily_volumes
+        Call pattern has syntax similar to DATA_daily_volumes
     '''
     db=dbOpenDatabase(dbFullName)
     dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')

@@ -244,8 +244,15 @@ def logRetrieveAccessesPerUser(db,dbTZ,counterid,accessthreshold=None,daysBack=N
             accessesPerUser[userId]=accessesPerUser.get(userId,[])+[accessObject]
     # anonymize and sort the per-user list
     userToIndex={uid: uind for uind,uid in enumerate(accessesPerUser.keys())}
-    return {
-        userToIndex[uid]: sorted(ulist, key=lambda aObj: aObj['date'])
-        for uid,ulist in accessesPerUser.items()
-        if len(ulist)>=mdCut
-    }
+    return sorted(
+        [
+            {
+                'user': userToIndex[uid],
+                'accesses': sorted(ulist, key=lambda aObj: aObj['date']),
+            }
+            for uid,ulist in accessesPerUser.items()
+            if len(ulist)>=mdCut
+        ],
+        key=lambda uElem: len(uElem['accesses']),
+        reverse=True
+    )

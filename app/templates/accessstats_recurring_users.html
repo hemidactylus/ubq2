@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="container">
+      <h3>
+        <i class="fa fa-calculator fa-lg" aria-hidden="true"></i>
+        {{ title }}
+      </h3>
+      <p id="menu">
+            <span>
+                 <b>Viewers appearing at least on: </b>
+                <input size="4" maxlength="5" type="text" name="mindayscut" id="mindayscut" value="3">
+                <b>days.</b>
+            </span>
+            <span>
+                 <b>Min. viewer connection: </b>
+                <input size="4" maxlength="5" type="text" name="accessthreshold" id="accessthreshold" value="10">
+                <b>minutes.</b>
+            </span>
+            <span>
+                <b>Go back </b>
+                <input size="4" maxlength="5" type="text" name="daysback" id="daysback" value="90">
+                <b>days.</b>
+            </span>
+      </p>
+      <hr>
+      <!-- Here the plot is built -->
+        <svg class="chart"></svg>
+        <script src="/static/ubq/d3/d3.min.js" charset="utf-8"></script>
+        <script>
+          var counterid="{{counterid}}";
+        </script>
+        <script>
+            var formatTime=function(tstamp){
+                var date = new Date(tstamp);
+                // Hours part from the timestamp
+                var hours = date.getHours();
+                // Minutes part from the timestamp
+                var minutes = "0" + date.getMinutes();
+                // Seconds part from the timestamp
+                var seconds = "0" + date.getSeconds();
+                // Will return time in 10:30:23 format
+                return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+            }
+
+            var fixInteger = function(strVal){
+                return parseInt(strVal)
+            }
+
+            var margin = {top: 20, right: 30, bottom: 40, left: 80},
+                width = 1000 - margin.left - margin.right,
+                height = 350 - margin.top - margin.bottom;
+    
+            var x = d3.scaleTime()
+                    .range([0,width]);
+            var y = d3.scaleLinear()
+                    .range([0, height]);
+            var xAxis = d3.axisBottom()
+                .scale(x);
+            var yAxis = d3.axisLeft()
+                .scale(y);
+
+            var chart = d3.select(".chart")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                // see mouse-events below
+                .attr("pointer-events", "all")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var clip = chart.append("defs").append("svg:clipPath")
+                .attr("id", "clip")
+                .append("svg:rect")
+                .attr("id", "clip-rect")
+                .attr("x", "0")
+                .attr("y", "0")
+                .attr("width", width)
+                .attr("height", height);
+            var chartBody = chart.append("g")
+                .attr("id","chartBody")
+                .attr("clip-path", "url(#clip)");
+            var chartAccesses=chartBody.append("g")
+                 .attr("id","chartAccesses");
+
+            var xaxis=chart.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")");
+            xaxis.append("text")
+                .attr("class","axislabel")
+                .attr("x", width)
+                .attr("dx", "-10px")
+                .attr("dy", "34")
+                .style("text-anchor", "end")
+                .text("Time");
+            var yaxis=chart.append("g")
+                .attr("class", "y axis");
+            var ycaption=yaxis.append("text")
+                .attr("class","axislabel")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -20)
+                .attr("dy", "-0.71em")
+                .style("text-anchor", "end");
+
+            var TIME_GUTTER=0.25*86400; // quarter-of-a-day
+
+            var redraw=function(){
+                var accessthreshold=fixInteger(menu_accessthreshold.property("value")*60);
+                var daysback=fixInteger(menu_daysback.property("value"));
+                var mindayscut=fixInteger(menu_mindayscut.property("value"));
+                d3.json(
+                    "{{url_for('DATA_recurring_users',counterid='COUNTERID',accessthreshold='ACCESSTHRESHOLD',daysBack='DAYSBACK',minDaysCut='MINDAYSCUT')}}"
+                        .replace('COUNTERID',counterid)
+                        .replace('ACCESSTHRESHOLD',accessthreshold)
+                        .replace('DAYSBACK',daysback)
+                        .replace('MINDAYSCUT',mindayscut),
+                    function(error,data){
+
+                    var time_max=d3.max(
+                        data, function(d){return d3.max(d.accesses, function(a) {return a.date;})}
+                    );
+                    var time_min=d3.min(
+                        data, function(d){return d3.min(d.accesses, function(a) {return a.date;})}
+                    )
+                    x.domain([time_min-TIME_GUTTER,time_max+TIME_GUTTER]);
+                    y.domain([0,data.length+1]);
+
+                    var accessplotsel=chartAccesses.selectAll('g');
+                    accessplotsel.remove();
+
+                    // HERE THE ACCESSES ARE DRAWN
+                    var accessplot=chartAccesses.selectAll('g').data(data)
+                        .enter()
+                        .append('g')
+                        .attr('transform', function(d,i){
+                            return 'translate(0,'+y(i)+')';
+                        });
+
+                    xaxis.call(xAxis);
+                    yaxis.call(yAxis);
+                });
+            };
+
+            // alert("Add a check to prevent useless redraws, with a var to keep track");
+            var menu_accessthreshold = d3.select("#accessthreshold")
+                .on("change keyup", redraw);
+            var menu_daysback = d3.select("#daysback")
+                .on("change keyup", redraw);
+            var menu_mindayscut = d3.select("#mindayscut")
+                .on("change keyup", redraw);
+
+            redraw();
+        </script>
+      <!-- End of the plot -->
+    </div>
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}

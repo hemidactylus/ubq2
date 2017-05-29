@@ -578,13 +578,27 @@ def ep_accessstats_usage_per_day(counterid):
 @login_required
 def ep_accessstats_weekly_patterns(counterid):
     '''
-        The page with the counter-specific per-day usage plot
+        The page with the counter-specific per-weekday usage histogram
     '''
     user=g.user
     return render_template(
         'accessstats_weekly_patterns.html',
         user=user,
         title='Usage weekly patterns for "%s"' % counterid,
+        counterid=counterid,
+    )
+
+@app.route('/accessstats_recurring_users/<counterid>')
+@login_required
+def ep_accessstats_recurring_users(counterid):
+    '''
+        The page with the counter-specific chart of recurring users
+    '''
+    user=g.user
+    return render_template(
+        'accessstats_recurring_users.html',
+        user=user,
+        title='Recurring viewers for "%s"' % counterid,
         counterid=counterid,
     )
 
