@@ -4,6 +4,10 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 # Doing and to-do
 
+    An ABOUT page (without login_required)
+
+    Make the decision whether to put a label to the number-time-plot depend on the width in pixels and not the duration in minutes!
+
 - ADAPTING TO DEPLOY
     * 'update1.php' better becomes 'update1', must alter the devices!
 
