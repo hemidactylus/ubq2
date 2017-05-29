@@ -602,6 +602,20 @@ def ep_accessstats_recurring_users(counterid):
         counterid=counterid,
     )
 
+@app.route('/accessstats_frequent_users/<counterid>')
+@login_required
+def ep_accessstats_frequent_users(counterid):
+    '''
+        The page with the counter-specific histogram of n-days-per-users
+    '''
+    user=g.user
+    return render_template(
+        'accessstats_frequent_users.html',
+        user=user,
+        title='Frequent viewers for "%s"' % counterid,
+        counterid=counterid,
+    )
+
 @app.route('/ep_accessstats_daily_volumes/<counterid>')
 @login_required
 def ep_accessstats_daily_volumes(counterid):

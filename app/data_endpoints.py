@@ -3,6 +3,9 @@
     statistics
 '''
 
+from collections import Counter
+from operator import itemgetter
+
 from flask import   (
                         render_template,
                         flash,
@@ -295,4 +298,44 @@ def DATA_recurring_users(counterid,accessthreshold='0',daysBack=None,minDaysCut=
     db=dbOpenDatabase(dbFullName)
     dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')
     accessesPerUser=logRetrieveAccessesPerUser(db,dbTZ,counterid,accessthreshold,daysBack,minDaysCut)
-    return jsonify(accessesPerUser)
+    return jsonify(
+        [
+            {
+                'user': accPerU['user'],
+                'accesses': [
+                    {
+                        'date': acc['date']*1000.0,
+                        'nrequests': acc['nrequests'],
+                    }
+                    for acc in accPerU['accesses']
+                ]
+            }
+            for accPerU in accessesPerUser
+        ]
+    )
+
+@app.route('/DATA_frequent_users/<counterid>')
+@app.route('/DATA_frequent_users/<counterid>/<accessthreshold>')
+@app.route('/DATA_frequent_users/<counterid>/<accessthreshold>/<daysBack>')
+@app.route('/DATA_frequent_users/<counterid>/<accessthreshold>/<daysBack>/<minDaysCut>')
+@login_required
+def DATA_frequent_users(counterid,accessthreshold='0',daysBack=None,minDaysCut='0'):
+    '''
+        Returns a simple histogram of frequency for each number-of-days-of-connection-per-user,
+        with the same calling syntax as DATA_recurring_users
+    '''
+    db=dbOpenDatabase(dbFullName)
+    dbTZ=dbGetSetting(db,'WORKING_TIMEZONE')
+    accessesPerUser=logRetrieveAccessesPerUser(db,dbTZ,counterid,accessthreshold,daysBack,minDaysCut)
+    return jsonify(
+        [
+            {
+                'ndays': nTimes,
+                'count': uCount,
+            }
+            for nTimes,uCount in sorted(
+                Counter(len(accPerU['accesses']) for accPerU in accessesPerUser).items(),
+                key=itemgetter(0),
+            )
+        ]
+    )

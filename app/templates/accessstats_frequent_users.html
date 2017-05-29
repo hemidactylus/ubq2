@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="container">
+      <h3>
+        <i class="fa fa-id-card-o fa-lg" aria-hidden="true"></i>
+        {{ title }}
+      </h3>
+       <p id="menu">
+            <span>
+                 <b>Viewers appearing at least on: </b>
+                <input size="4" maxlength="5" type="text" name="mindayscut" id="mindayscut" value="3">
+                <b>days.</b>
+            </span>
+            <span>
+                 <b>Min. viewer connection: </b>
+                <input size="4" maxlength="5" type="text" name="accessthreshold" id="accessthreshold" value="10">
+                <b>minutes.</b>
+            </span>
+            <span>
+                <b>Go back </b>
+                <input size="4" maxlength="5" type="text" name="daysback" id="daysback" value="90">
+                <b>days.</b>
+            </span>
+      </p>
+      <hr>
+      <!-- Here the plot is built -->
+        <svg class="chart"></svg>
+        <script src="/static/ubq/d3/d3.min.js" charset="utf-8"></script>
+        <script>
+          var counterid="{{counterid}}";
+        </script>
+        <script>
+
+            var margin = {top: 20, right: 30, bottom: 40, left: 50},
+                width = 1000 - margin.left - margin.right,
+                height = 350 - margin.top - margin.bottom,
+                unitheight = height / 100.0;
+
+            var bpadding=0.2;
+
+            var y = d3.scaleLinear()
+                    .range([height,0]);
+            var x = d3.scaleLinear()
+                    .range([0,width]);
+            var xAxis = d3.axisBottom()
+                .scale(x)
+            var yAxis = d3.axisLeft()
+                .scale(y);
+
+            var bpadding=0.2;
+
+            var fixInteger = function(strVal){
+                return parseInt(strVal)
+            }
+
+            var chart = d3.select(".chart")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("pointer-events", "all")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var chartBody=chart.append("g");
+
+            var xaxis=chart.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")");
+            xaxis.append("text")
+                .attr("class","axislabel")
+                .attr("x", width)
+                .attr("dx", "-10px")
+                .attr("dy", "34")
+                .style("text-anchor", "end")
+                .text("Days of usage");
+            var yaxis=chart.append("g")
+                .attr("class", "y axis");
+            yaxis.append("text")
+                .attr("class","axislabel")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -20)
+                .attr("dy", "-0.71em")
+                .style("text-anchor", "end")
+                .text("Viewers count");
+
+            var redraw=function(){
+                var accessthreshold=fixInteger(menu_accessthreshold.property("value")*60);
+                var daysback=fixInteger(menu_daysback.property("value"));
+                var mindayscut=fixInteger(menu_mindayscut.property("value"));
+                d3.json(
+                    "{{url_for('DATA_frequent_users',counterid='COUNTERID',accessthreshold='ACCESSTHRESHOLD',daysBack='DAYSBACK',minDaysCut='MINDAYSCUT')}}"
+                        .replace('COUNTERID',counterid)
+                        .replace('ACCESSTHRESHOLD',accessthreshold)
+                        .replace('DAYSBACK',daysback)
+                        .replace('MINDAYSCUT',mindayscut),
+                    function(error,data){
+                        var histoXMin=d3.min(data,function(d){return d.ndays;});
+                        var histoXMax=d3.max(data,function(d){return d.ndays;});
+                        x.domain([histoXMin-0.5,histoXMax+0.5]);
+                        var barwidth=x(2)-x(1+bpadding);
+                        var histoYMax=d3.max(data,function(d){return d.count;});
+                        y.domain([0,histoYMax*1.05]);
+
+                        var rectasel = chartBody.selectAll("g");
+                        rectasel.remove();
+                        // we now re-compute the d3 select to add new items
+                        rectasel=chartBody.selectAll("g").data(data);
+
+                        var bar=rectasel
+                            .enter()
+                            .append("g")
+                            .attr("transform", function(d){return "translate("+x(d.ndays-0.5+0.5*bpadding)+
+                                ","+y(d.count)+")"; });
+                        bar.append("rect")
+                            .attr("class","numberrect")
+                            .attr("height", function(d) {return height-y(d.count); })
+                            .attr("width", barwidth)
+                            //.attr("fill", function (d) {return "blue"})
+                            .append("title")
+                            .text(function(d){return d.ndays+" days: "+d.count+" viewers.";});
+
+                        xaxis.call(xAxis);
+                        yaxis.call(yAxis);
+
+                    }
+                );
+            };
+
+            // alert("Add a check to prevent useless redraws, with a var to keep track");
+            var menu_accessthreshold = d3.select("#accessthreshold")
+                .on("change keyup", redraw);
+            var menu_daysback = d3.select("#daysback")
+                .on("change keyup", redraw);
+            var menu_mindayscut = d3.select("#mindayscut")
+                .on("change keyup", redraw);
+
+            redraw();
+        </script>
+      <!-- End of the plot -->
+    </div>
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}

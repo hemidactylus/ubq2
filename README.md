@@ -3,8 +3,6 @@ UBQ 2 SERVER-SIDE TECH SPECS
 ----------------------------
 
 # Doing and to-do
-    DOING, GRAPHICS PAGES
-        a page for recurring users (to do)
 
 - ADAPTING TO DEPLOY
     * 'update1.php' better becomes 'update1', must alter the devices!

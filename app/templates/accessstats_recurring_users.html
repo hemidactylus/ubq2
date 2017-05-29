@@ -45,8 +45,29 @@
                 return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
             }
 
+            function formatDate(jTimestamp){
+                var a = new Date(jTimestamp);
+                var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                var year = a.getFullYear();
+                var month = months[a.getMonth()];
+                var date = a.getDate();
+                var time = month + ' ' + date + ', ' + year;
+                return time;
+            }
+
+            var lightColor='#406abf';
+            var darkColor='#0d224f';
+            var rectangleColorer=d3.interpolateLab(lightColor,darkColor);
+            var barColorer=function(val,min,max){
+                return rectangleColorer((Math.log(val)-Math.log(min))/(Math.log(max)));
+            }
+
             var fixInteger = function(strVal){
                 return parseInt(strVal)
+            }
+
+            var recurringAccessDescription=function(acc){
+                return acc.nrequests+' requests on '+formatDate(acc.date)+'.';
             }
 
             var margin = {top: 20, right: 30, bottom: 40, left: 80},
@@ -103,7 +124,11 @@
                 .attr("dy", "-0.71em")
                 .style("text-anchor", "end");
 
-            var TIME_GUTTER=0.25*86400; // quarter-of-a-day
+            // horiz in-plot gutter and exact placement of the user-markers
+            var RECTA_Y_FRACTION=0.95;
+            var RECTA_X_FRACTION=0.95;
+            var ONE_DAY=86400000.0;
+            var TIME_GUTTER=ONE_DAY*RECTA_X_FRACTION;
 
             var redraw=function(){
                 var accessthreshold=fixInteger(menu_accessthreshold.property("value")*60);
@@ -122,20 +147,71 @@
                     );
                     var time_min=d3.min(
                         data, function(d){return d3.min(d.accesses, function(a) {return a.date;})}
+                    );
+                    var maxNRequests=d3.max(
+                        data, function(d){return d3.max(d.accesses, function(a) {return a.nrequests;})}
                     )
                     x.domain([time_min-TIME_GUTTER,time_max+TIME_GUTTER]);
-                    y.domain([0,data.length+1]);
+                    y.domain([data.length+0.5,0.5]);
+
+                    yAxis
+                        .tickValues(
+                            d3.range(
+                                1,
+                                data.length+1,
+                                Math.floor(
+                                    d3.max(
+                                        [
+                                            1,
+                                            data.length/16
+                                        ]
+                                    )
+                                )
+                            )
+                        )
+                        .tickFormat(function(val){return 'Viewer '+(val);});
+
 
                     var accessplotsel=chartAccesses.selectAll('g');
                     accessplotsel.remove();
+
+                    var rectaWidth=RECTA_X_FRACTION*(x(ONE_DAY+time_min)-x(time_min));
+                    var rectaHeight=RECTA_Y_FRACTION*(y(0)-y(1));
+                    var rectaXOffset=-0.5*rectaWidth;
+                    var rectaYOffset=-0.5*rectaHeight;
 
                     // HERE THE ACCESSES ARE DRAWN
                     var accessplot=chartAccesses.selectAll('g').data(data)
                         .enter()
                         .append('g')
+                        .attr('id', function(d){return 'user_'+d.user;})
                         .attr('transform', function(d,i){
-                            return 'translate(0,'+y(i)+')';
+                            return 'translate(0,'+(y(i+1)+rectaYOffset)+')';
                         });
+                    var accessdays=accessplot.selectAll('g')
+                        .data(function(d){return d.accesses;})
+                        .enter()
+                        .append('rect')
+                        .attr('transform',function(acc){return 'translate('+(x(acc.date)+rectaXOffset)+',0)';})
+                        .attr('height',rectaHeight)
+                        .attr('width',rectaWidth)
+                        .attr('fill',function(acc){return barColorer(acc.nrequests,1,maxNRequests);});
+                    accessdays
+                        .append('title')
+                        .text(recurringAccessDescription);
+
+                    accessplot.on('mouseenter',function(q){
+                        d3.select('g #user_'+q.user)
+                            .selectAll('rect')
+                            .style('stroke','black')
+                            .style('stroke-width', 2)
+                            .style('color','black');
+                    });
+                    accessplot.on('mouseleave',function(q){
+                        d3.select('g #user_'+q.user)
+                            .selectAll('rect')
+                            .style('stroke-width', 0);
+                    });
 
                     xaxis.call(xAxis);
                     yaxis.call(yAxis);
