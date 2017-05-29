@@ -173,21 +173,19 @@
                         .attr('transform', function(d){
                             return 'translate(0,'+y(d.day)+')';
                         });
+                    accessbars.append('title')
+                        .text(accessWeeklyDesc);
                     accessbars.append('rect')
                         .attr('class','accessrect')
                         .attr('height',barHeight)
-                        .attr('width',function(d){return x(d.avg);})
-                        .append('title')
-                        .text(accessWeeklyDesc);
+                        .attr('width',function(d){return x(d.avg);});
                     accessbars.append('rect')
                         .attr('transform', function(d){
                             return 'translate('+x(d.avg-d.std)+','+(0.5*(barHeight-barErrorBarHeight))+')';
                         })
                         .attr('class','accessrecterrorbar')
                         .attr('height',barErrorBarHeight)
-                        .attr('width',function(d){return x(2*d.std);})
-                        .append('title')
-                        .text(accessWeeklyDesc);
+                        .attr('width',function(d){return x(2*d.std);});
 
                     var numberbars=chartNumbers.selectAll('g').data(data.numbers)
                         .enter()
@@ -195,21 +193,19 @@
                         .attr('transform', function(d){
                             return 'translate(0,'+(y(d.day)+barOuterHeight)+')';
                         });
+                    numberbars.append('title')
+                        .text(numberWeeklyDesc);
                     numberbars.append('rect')
                         .attr('class','numberrect')
                         .attr('height',barHeight)
-                        .attr('width',function(d){return x(d.avg);})
-                        .append('title')
-                        .text(numberWeeklyDesc);
+                        .attr('width',function(d){return x(d.avg);});
                     numberbars.append('rect')
                         .attr('transform', function(d){
                             return 'translate('+x(d.avg-d.std)+','+(0.5*(barHeight-barErrorBarHeight))+')';
                         })
                         .attr('class','numberrecterrorbar')
                         .attr('height',barErrorBarHeight)
-                        .attr('width',function(d){return x(2*d.std);})
-                        .append('title')
-                        .text(numberWeeklyDesc);
+                        .attr('width',function(d){return x(2*d.std);});
 
                     xaxis.call(xAxis);
                     yaxis.call(yAxis);
