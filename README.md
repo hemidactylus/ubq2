@@ -8,9 +8,6 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
     Make the decision whether to put a label to the number-time-plot depend on the width in pixels and not the duration in minutes!
 
-- ADAPTING TO DEPLOY
-    * 'update1.php' better becomes 'update1', must alter the devices!
-
 - Slowness in editing counters: to investigate. After 'save counter' there's sometimes a 1-2 sec delay
     before the ep_counters endpoint is queried. Seemingly out-of-my-code,
     perhaps DB related (i.e. race condition on transaction)?
