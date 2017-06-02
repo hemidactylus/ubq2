@@ -714,6 +714,15 @@ def ep_usersettings():
             form=f,
         )
 
+@app.route('/about')
+def ep_about():
+    user=g.user
+    return render_template(
+        'about.html',
+        title='About UBIQueue',
+        user=user,
+        )
+
 @app.route('/logout')
 @login_required
 def ep_logout():

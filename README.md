@@ -4,8 +4,6 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 # Doing and to-do
 
-    An ABOUT page (without login_required)
-
     Make the decision whether to put a label to the number-time-plot depend on the width in pixels and not the duration in minutes!
 
 - Slowness in editing counters: to investigate. After 'save counter' there's sometimes a 1-2 sec delay

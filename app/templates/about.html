@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="container">
+      <h2>About UBIQueue</h2>
+      <hr>
+      <div class="row">
+        <div class="col-sm-6">
+          <div class="row">
+            <div class="col-sm-12">
+              UBQ, a system to display online the status of take-a-number systems:
+              keep an eye on when it's going to be your turn while you run another
+              errand - or simply enjoy your coffee!
+            </div>
+            <div class="col-sm-12">
+              A project imagined, planned and developed by
+              <a href="http://www.salamandrina.net">
+                salamandrina.net
+              </a>
+              for
+              <a href="http://www.ordineavvocativrea.it">
+                Ordine degli Avvocati di Ivrea
+              </a>.
+            </div>
+            <div class="col-sm-12">
+              To contact the author, or have a look at the server-side
+              source code, go to the project's
+              <a href="https://github.com/hemidactylus/ubq2">
+                github
+              </a>.
+            </div>
+            <div class="col-sm-12">
+              UBIQueue is a
+              <a href="http://www.salamandrina.net">
+                <img src="/static/ubq/images/salamandrina.svg" height="50px" alt="salamandrina.net" title="salamandrina.net">
+              </a>
+              service.
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+            <img src="/static/ubq/images/logo1.svg" width="70%">
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-4">
+          <img src="/static/ubq/images/cow1_open.png" height="280px">
+        </div>
+        <div class="col-sm-4">
+          <img src="/static/ubq/images/cow2_box.png" height="280px">
+        </div>
+        <div class="col-sm-4">
+          One of the installed clients.
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-4">
+          Another client machine.
+        </div>
+        <div class="col-sm-4">
+          <img src="/static/ubq/images/cuckoo2_box.png" height="280px">
+        </div>
+        <div class="col-sm-4">
+          <img src="/static/ubq/images/cuckoo1_open.png" height="280px">
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-4">
+          Schematic description of the service.
+        </div>
+        <div class="col-sm-8">
+          SKETCH TO DO
+        </div>
+      </div>
+      <hr>
+    </div>
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}
+
