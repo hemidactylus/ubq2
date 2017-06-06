@@ -190,6 +190,8 @@ def ep_embedcode(counterid):
         fullname=counter.fullname,
     )
 
+# this former alias holds compatibility with the ubq1 addressing logic
+@app.route('/<counterid>/ubq_cnt.html')
 @app.route('/showcounter/<counterid>')
 def ep_showcounter(counterid):
     user=g.user
