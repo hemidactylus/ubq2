@@ -716,6 +716,10 @@ def ep_usersettings():
             form=f,
         )
 
+@app.route('/moreinfo.html')
+def ep_moreinfo_html():
+    return redirect(url_for('ep_about'))
+
 @app.route('/about')
 def ep_about():
     user=g.user
