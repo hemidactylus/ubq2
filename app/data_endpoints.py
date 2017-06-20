@@ -241,20 +241,26 @@ def DATA_daily_volumes(counterid,durationthreshold='0',accessthreshold='0',daysB
     numbers=acc_num['numbers']
     #
     fullStruct={
-        'accesses': [
-            {
-                'date': 1000.0*dateStamp,
-                'value': count,
-            }
-            for dateStamp,count in accesses.items()
-        ],
-        'numbers': [
-            {
-                'date': 1000.0*dateStamp,
-                'value': count,
-            }
-            for dateStamp,count in numbers.items()
-        ],
+        'accesses': sorted(
+            [
+                {
+                    'date': 1000.0*dateStamp,
+                    'value': count,
+                }
+                for dateStamp,count in accesses.items()
+            ],
+            key=lambda st: st['date'],
+        ),
+        'numbers': sorted(
+            [
+                {
+                    'date': 1000.0*dateStamp,
+                    'value': count,
+                }
+                for dateStamp,count in numbers.items()
+            ],
+            key=lambda st: st['date'],
+        )
     }
     return jsonify(**fullStruct)
 
