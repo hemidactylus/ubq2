@@ -16,6 +16,18 @@ body {
     background-color: #0d224f;
 }
 
+.policytitle {
+  font-size: 10pt;
+  font-weight: bold;
+  padding-top: 8px;
+}
+
+.policytext {
+  font-size: 10pt;
+  padding-left: 15px;
+  padding-top: 7px;
+}
+
 .codetextarea {
   font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
   font-size:14pt;

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    {% block languages %}
+    <div class="container">
+      <h3>Cookie &amp; privacy policy</h3>
+      <hr>
+        {% for la in langs %}
+          <span style="padding-right: 20px;">
+            {% if la.id != lang.id %}
+            <a href="{{ url_for('ep_policies',lang=la.id) }}">
+            {% else %}
+            <span style="font-weight: bold;">
+            {% endif %}
+              {{ la.name }} version
+            {% if la.id != lang.id %}
+            </a>
+            {% else %}
+            </span>
+            {% endif %}
+          </span>
+        {% endfor %}
+      <hr>
+      {% block policybody %}
+      {% endblock %}
+    </div>
+    {% endblock %}
+
+    {% block footer %}
+        {{ super() }}
+    {% endblock %}
+
+{% endblock %}
+

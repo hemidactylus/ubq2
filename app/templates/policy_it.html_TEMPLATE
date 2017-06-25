@@ -1,0 +1,11 @@
+{% extends "policy.html" %}
+
+      {% block policybody %}
+        <div class="policytitle">
+          Privacy policy
+        </div>
+        <div class="policytext">
+        Inserisci qui il tuo testo
+        </div>
+        <hr>
+      {% endblock %}

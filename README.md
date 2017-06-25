@@ -18,50 +18,6 @@ UBQ 2 SERVER-SIDE TECH SPECS
     * How to iterate bindings to keyup with a loop in counter editor
     * Color of curves on css for the daily usages
 
-*******
-
-- Logging system, tracking system, their plot with D3 and a smart way of archiving historical data
-- do it via status,return on all DB calls! (some already have it)
-    A single table with various types of logged messages? Or a different table per message type?
-
-        (userID, day, counter)    firstReq, lastReq, numReqs
-            for each requestor, progressively update usage stats
-
-        (date, counter)                         modeChange(prevmode-newmode), time
-            for each counter log the pointlike off/online changes and mode setting change
-
-        (date) anomalyCode, anomalyString
-            (more generic) email sent, malformed/wrongcode requests...
-
-    A weekly archiving of such events...? Or a separate DB from the start (perhaps better)
-
-Requests from within the code in the page automatically inherit auth data (session cookies)
-
-Associated endpoints & flow:
-    a number-stat page where one selects between:
-        type of stat (time-number plot, duration frequency, init/end time distrib)
-        target counter (choose among the public ones)
-        (some subthings such as day or so)
-    and, below, a plot.
-
-Counter States Spans:
-    each counter is represented by (n,start,stop), n= the number or -1 (offline)
-    In signalnumbertocounter and checkcounteractivity this must happen:
-        if change of number, use the date of last-update as start and record the
-        just elapsed (n,start,stop)
-
-        => Table 'stats_numbers'
-            day, counter, number, starttime, endtime
-
-    For the corresponding plot, this is a horiz-lines segmented plot.
-    And it is a pilot test.
-
-    First goal: for a given counter,
-        a standard timespan,                    TO FIX (so far it's fixed for testing)
-        an endpoint which marshals the json,    DONE
-        a frame with the plot,                  todo
-
-
 **********
 
 # General notes

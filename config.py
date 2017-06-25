@@ -21,7 +21,7 @@ IFRAME_EMBED_CODE='''<iframe
     scrolling="no" 
     seamless="seamless">
 </iframe>'''
-APP_COMPLETE_ADDRESS='http://www.salamandrina.net'
+APP_COMPLETE_ADDRESS='https://www.salamandrina.net'
 
 # official service name
 UBQ_SERVICE_FULLNAME='UBQ [%s]' % APP_COMPLETE_ADDRESS

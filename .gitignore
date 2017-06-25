@@ -11,3 +11,5 @@ scripts/ubqTriggerCheckbeat.service
 scripts/history_import_data
 scripts/history_import_tmp/*.tmp
 scripts/history_import_logs/*
+app/templates/policy_en.html
+app/templates/policy_it.html

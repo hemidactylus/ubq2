@@ -716,6 +716,41 @@ def ep_usersettings():
             form=f,
         )
 
+@app.route('/cookie_privacy_policy')
+@app.route('/cookie_privacy_policy/<lang>')
+def ep_policies(lang='en'):
+    policylangs=[
+        {
+            'name': 'English',
+            'id': 'en',
+        },
+        {
+            'name': 'Italian',
+            'id': 'it',
+        },
+    ]
+    user=g.user
+    if lang=='it':
+        policy_templatename='policy_it.html'
+        langstruct={
+            'name': 'Italian',
+            'id': 'it',
+        }
+    else:
+        lang='en'
+        langstruct={
+            'name': 'English',
+            'id': 'en',
+        }
+        policy_templatename='policy_en.html'
+    return render_template(
+        policy_templatename,
+        user=user,
+        title='Cookie and Privacy Policy',
+        langs=policylangs,
+        lang=langstruct,
+    )        
+
 @app.route('/moreinfo.html')
 def ep_moreinfo_html():
     return redirect(url_for('ep_about'))
