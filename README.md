@@ -59,10 +59,10 @@ UBQ 2 SERVER-SIDE TECH SPECS
 
 * Ordinary requests:
     - http://www.salamandrina.net/ubq/update1.php?N=<STATUS_NUMBER>&K=<COUNTER_KEY>
-    - http://salamandrina.net/ubq/index.html
-    - http://salamandrina.net/ubq/<COUNTER_ID>/ubq_cnt.html
+    - https://salamandrina.net/ubq/index.html
+    - https://salamandrina.net/ubq/<COUNTER_ID>/ubq_cnt.html
         COUNTER_ID = CC1, EM1, ...
-    
+
     (there's some css and an iframe embedding at the moment)
 
 * Sending gmail from python with an application API
