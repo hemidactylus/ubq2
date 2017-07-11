@@ -37,10 +37,13 @@ from config import (
     EMAIL_ILLEGAL_ACCESS_SUBJECT,
     EMAIL_ILLEGAL_ACCESS_BODY,
     REDIRECT_EMAIL_TO_STDOUT,
+    ALERT_DATE_FORMAT,
+
 )
 from app.utils.dateformats import (
     localDateFromTimestamp,
     pastTimestamp,
+    localisedDatetime,
 )
 from app.sendMail.sendMail import sendMail
 
@@ -70,6 +73,9 @@ def sendAlert(db,mailSubject,mailBody,recipientList,alertType='general',counteri
     db.commit()
     # send email alert
     try:
+        mailDateSignature=localisedDatetime(
+            dbGetSetting(db,'WORKING_TIMEZONE')
+        ).strftime(ALERT_DATE_FORMAT)
         if not REDIRECT_EMAIL_TO_STDOUT:
             # log just one line anyway to stdout
             print('[sendAlert] Issuing email with subject=<%s>' % mailSubject,end='')
@@ -78,6 +84,7 @@ def sendAlert(db,mailSubject,mailBody,recipientList,alertType='general',counteri
                 mailSubject=mailSubject,
                 mailBody=mailBody,
                 recipientList=recipientList,
+                dateSignature=mailDateSignature
                 **kwargs
             )
             print('[sendAlert] done')
@@ -86,6 +93,7 @@ def sendAlert(db,mailSubject,mailBody,recipientList,alertType='general',counteri
             print('MAIL_RECIPIENTS : %s' % ', '.join(recipientList))
             print('MAIL_SUBJECT    : %s' % mailSubject)
             print('MAIL_BODY       :\n%s' % mailBody)
+            print('MAIL_DATE_SIG   : %s' % mailDateSignature)
             print('===========================================')
             sys.stdout.flush()
     except:

@@ -31,6 +31,7 @@ def sendMail(
         recipientList,
         ccList=[],
         bccList=[],
+        dateSignature=None,
     ):
     '''
         send a text-only email to a list of addresses
@@ -41,7 +42,9 @@ def sendMail(
         Signature is set in the config file.
 
         Addresses are a list of strings or strings for individual entries.
-        
+      
+        if no dateSignature is provided, a non-timezone-localised one is generated here
+
     '''
     # open the server and connect
     mailServer = smtplib.SMTP(gmailServerConnectString)
@@ -59,7 +62,8 @@ def sendMail(
     # possibly add signatures to the message body
     completeText=emailTextTemplate.format(
         mailBody=mailBody,
-        currentDate=datetime.now().strftime(currentDateFormat),
+        currentDate=datetime.now().strftime(currentDateFormat) \
+            if dateSignature is None else dateSignature,
         hostName=socket.gethostname(),
     )
     msgObject.set_payload(completeText)

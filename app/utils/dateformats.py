@@ -32,6 +32,13 @@ def localDateFromTimestamp(ts,tzonedesc):
     locDate=pytz.utc.localize(datetime.utcfromtimestamp(ts),is_dst=None)
     return locDate.astimezone(pytz.timezone(tzonedesc))
 
+def localisedDatetime(tzonedesc):
+    '''
+        returns a localised datetime ready for thoughless .strftime('...')
+    '''
+    locDate=pytz.utc.localize(datetime.utcnow(),is_dst=None)
+    return locDate.astimezone(pytz.timezone(tzonedesc))
+
 def localDayTimestamp(ts,tzonedesc):
     '''
         Given a timestamp and a timezone, the timestamp
