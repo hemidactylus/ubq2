@@ -52,7 +52,7 @@ LONG_DATE_FORMAT='%b %d, %Y - %H:%M:%S'
 ALERT_DATE_FORMAT='%Y/%m/%d %H:%M:%S'
 
 # Debug option for redirecting email to stdout (and no email)
-REDIRECT_EMAIL_TO_STDOUT=True#False
+REDIRECT_EMAIL_TO_STDOUT=False
 
 # Template for sending out email alerts
 EMAIL_OFFLINE_ALERT_SUBJECT='UBQ Counter {counterid} offline alert'
