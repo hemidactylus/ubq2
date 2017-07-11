@@ -84,7 +84,7 @@ def sendAlert(db,mailSubject,mailBody,recipientList,alertType='general',counteri
                 mailSubject=mailSubject,
                 mailBody=mailBody,
                 recipientList=recipientList,
-                dateSignature=mailDateSignature
+                dateSignature=mailDateSignature,
                 **kwargs
             )
             print('[sendAlert] done')
