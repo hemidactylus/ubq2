@@ -100,5 +100,8 @@ PERFORM_USER_IDENTIFICATION=True
 USE_ANONYMOUS_COOKIES=True
 COOKIE_DURATION_SECONDS=86400*365 # i.e. one year
 
+# trigger checkbeat verbosity
+TRIGGER_CHECKBEAT_VERBOSE=False
+
 # DERIVED VARIABLES - do not edit below this line (theoretically)
 dbFullName=os.path.join(DB_DIRECTORY,DB_NAME)

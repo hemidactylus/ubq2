@@ -14,6 +14,10 @@ from wtforms import (
                     )
 from wtforms.validators import DataRequired, NumberRange, EqualTo, Required
 
+env = jinja2.Environment()
+env.globals.update(zip=zip)
+# use env to load template(s)
+
 from app.utils.validators import (
     ColorExpression,
     IntegerString,
