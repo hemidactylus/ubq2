@@ -1,5 +1,5 @@
 '''
-    sendMail.py : a utility to handle email from a given gmail address,
+    sendMail.py : a utility to handle email from a given email address,
     provided a username/appPassword pair is generated.
     
     These and other settings are in mailSettings.py
@@ -11,7 +11,7 @@ from datetime import datetime
 import socket
 
 from app.sendMail.mailSettings import (
-    gmailServerConnectString,
+    mailServerConnectString,
     senderUsername,
     senderPassword,
     senderFromAddress,
@@ -47,7 +47,8 @@ def sendMail(
 
     '''
     # open the server and connect
-    mailServer = smtplib.SMTP(gmailServerConnectString)
+    mailServer = smtplib.SMTP(mailServerConnectString)
+    # mailServer.set_debuglevel(True)
     mailServer.starttls()
     mailServer.login(senderUsername,senderPassword)
     # prepare the email message
