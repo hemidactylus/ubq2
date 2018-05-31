@@ -13,3 +13,5 @@ scripts/history_import_tmp/*.tmp
 scripts/history_import_logs/*
 app/templates/policy_en.html
 app/templates/policy_it.html
+app/static/ubq/images/dpo_email.png
+
