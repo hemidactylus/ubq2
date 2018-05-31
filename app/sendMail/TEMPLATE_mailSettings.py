@@ -4,7 +4,7 @@
 
 # Do not let other people get hold of these settings.
 
-gmailServerConnectString='smtp.gmail.com:587'
+mailServerConnectString='smtp.fastmail.com:587'
 senderUsername='USERNAME@gmail.com'
 senderPassword='APPLICATION_PASSWORD'
 senderFromAddress = 'NAME <USERNAME@gmail.com>'
